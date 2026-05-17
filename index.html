@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aurora Stage 2 — 3D City Prototype</title>
+  <title>Aurora Stage 2.1 — 3D City Prototype</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -14,6 +14,8 @@
       background: #05070a;
       font-family: Arial, Helvetica, sans-serif;
       color: white;
+      user-select: none;
+      touch-action: none;
     }
     canvas { display: block; }
     #hud {
@@ -27,6 +29,7 @@
       justify-content: space-between;
       align-items: flex-start;
       z-index: 10;
+      gap: 12px;
     }
     .panel {
       background: rgba(0, 0, 0, 0.55);
@@ -35,7 +38,7 @@
       border-radius: 14px;
       padding: 12px 14px;
       backdrop-filter: blur(8px);
-      max-width: 360px;
+      max-width: 390px;
     }
     .title {
       font-size: 15px;
@@ -49,6 +52,20 @@
       font-size: 13px;
       opacity: 0.9;
       line-height: 1.5;
+    }
+    .barWrap {
+      width: 180px;
+      height: 9px;
+      background: rgba(255,255,255,0.14);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 4px 0 8px;
+    }
+    .barFill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #00ffaa, #ffee55);
+      border-radius: 999px;
     }
     #crosshair {
       position: fixed;
@@ -78,37 +95,88 @@
       transition: opacity 0.25s ease;
       z-index: 11;
       pointer-events: none;
+      white-space: nowrap;
     }
     #message.show { opacity: 1; }
+    #miniMapWrap {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      width: 170px;
+      height: 170px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 255, 170, 0.38);
+      box-shadow: 0 0 20px rgba(0, 255, 170, 0.22);
+      background: rgba(0,0,0,0.55);
+      z-index: 12;
+      pointer-events: none;
+    }
+    #miniMap {
+      width: 170px;
+      height: 170px;
+      display: block;
+    }
+    #testBadge {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 12;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 255, 170, 0.3);
+      color: #baffea;
+      pointer-events: none;
+    }
     @media (max-width: 700px) {
       #hud { padding: 10px; flex-direction: column; gap: 10px; }
       .panel { max-width: 100%; width: 100%; }
       .line { font-size: 12px; }
+      #message { bottom: 190px; max-width: 92vw; white-space: normal; text-align: center; }
+      #miniMapWrap { width: 135px; height: 135px; }
+      #miniMap { width: 135px; height: 135px; }
+      #testBadge { right: 10px; bottom: 10px; }
     }
   </style>
 </head>
 <body>
   <div id="hud">
     <div class="panel">
-      <div class="title">Aurora Stage 2</div>
+      <div class="title">Aurora Stage 2.1</div>
       <div class="line"><strong>Mode:</strong> <span id="modeText">Walking</span></div>
       <div class="line"><strong>Speed:</strong> <span id="speedText">0</span></div>
       <div class="line"><strong>Nearest car:</strong> <span id="carText">None</span></div>
+      <div class="line"><strong>Look mode:</strong> <span id="lookText">Drag fallback</span></div>
+    </div>
+    <div class="panel">
+      <div class="title">Player</div>
+      <div class="line"><strong>Health:</strong> <span id="healthText">100</span>%</div>
+      <div class="barWrap"><div id="healthBar" class="barFill"></div></div>
+      <div class="line"><strong>Money:</strong> £<span id="moneyText">250</span></div>
+      <div class="line"><strong>Wanted:</strong> <span id="wantedText">☆☆☆☆☆</span></div>
+      <div class="line"><strong>Collision:</strong> <span id="collisionText">Clear</span></div>
     </div>
     <div class="panel">
       <div class="title">Controls</div>
       <div class="line">WASD = move / drive</div>
-      <div class="line">Mouse = look around</div>
+      <div class="line">Mouse drag = look around</div>
       <div class="line">E = enter / exit car</div>
       <div class="line">Shift = sprint / boost</div>
-      <div class="line">Click screen once to lock mouse</div>
+      <div class="line">Click attempts pointer lock; sandbox fallback is safe</div>
     </div>
   </div>
   <div id="crosshair"></div>
+  <div id="miniMapWrap"><canvas id="miniMap" width="170" height="170"></canvas></div>
   <div id="message">Ready</div>
+  <div id="testBadge">Self-tests pending</div>
 
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+    const WORLD_SIZE = 500;
+    const HALF_WORLD = WORLD_SIZE / 2;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x071019);
@@ -123,16 +191,35 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
+    const miniMap = document.getElementById('miniMap');
+    const miniCtx = miniMap.getContext('2d');
     const modeText = document.getElementById('modeText');
     const speedText = document.getElementById('speedText');
     const carText = document.getElementById('carText');
+    const lookText = document.getElementById('lookText');
+    const healthText = document.getElementById('healthText');
+    const healthBar = document.getElementById('healthBar');
+    const moneyText = document.getElementById('moneyText');
+    const wantedText = document.getElementById('wantedText');
+    const collisionText = document.getElementById('collisionText');
     const message = document.getElementById('message');
+    const testBadge = document.getElementById('testBadge');
+
+    const gameState = {
+      health: 100,
+      money: 250,
+      wanted: 0,
+      lastCollisionTime: 0,
+      collisions: 0
+    };
+
+    const colliders = [];
 
     function showMessage(text) {
       message.textContent = text;
       message.classList.add('show');
       clearTimeout(showMessage.timer);
-      showMessage.timer = setTimeout(() => message.classList.remove('show'), 1500);
+      showMessage.timer = setTimeout(() => message.classList.remove('show'), 1800);
     }
 
     const hemi = new THREE.HemisphereLight(0x9fdcff, 0x202020, 1.25);
@@ -150,7 +237,7 @@
     scene.add(sun);
 
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(500, 500),
+      new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE),
       new THREE.MeshStandardMaterial({ color: 0x162025, roughness: 0.95 })
     );
     ground.rotation.x = -Math.PI / 2;
@@ -161,20 +248,26 @@
     const lineMat = new THREE.MeshStandardMaterial({ color: 0xffe066, emissive: 0x665000, emissiveIntensity: 0.25 });
     const pavementMat = new THREE.MeshStandardMaterial({ color: 0x2d343a, roughness: 0.9 });
 
-    function addBox(w, h, d, x, y, z, mat, cast = true, receive = true) {
+    function addBox(w, h, d, x, y, z, mat, cast = true, receive = true, collider = false) {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
       mesh.position.set(x, y, z);
       mesh.castShadow = cast;
       mesh.receiveShadow = receive;
       scene.add(mesh);
+      if (collider) {
+        mesh.userData.collider = true;
+        mesh.userData.halfX = w / 2;
+        mesh.userData.halfZ = d / 2;
+        colliders.push({ mesh, x, z, halfX: w / 2, halfZ: d / 2 });
+      }
       return mesh;
     }
 
     for (let i = -4; i <= 4; i++) {
-      addBox(500, 0.08, 12, 0, 0.04, i * 52, roadMat, false, true);
-      addBox(12, 0.08, 500, i * 52, 0.045, 0, roadMat, false, true);
-      addBox(500, 0.1, 0.3, 0, 0.1, i * 52, lineMat, false, false);
-      addBox(0.3, 0.1, 500, i * 52, 0.11, 0, lineMat, false, false);
+      addBox(WORLD_SIZE, 0.08, 12, 0, 0.04, i * 52, roadMat, false, true);
+      addBox(12, 0.08, WORLD_SIZE, i * 52, 0.045, 0, roadMat, false, true);
+      addBox(WORLD_SIZE, 0.1, 0.3, 0, 0.1, i * 52, lineMat, false, false);
+      addBox(0.3, 0.1, WORLD_SIZE, i * 52, 0.11, 0, lineMat, false, false);
     }
 
     const buildingMats = [
@@ -184,17 +277,30 @@
       new THREE.MeshStandardMaterial({ color: 0x3d3b32, roughness: 0.9 })
     ];
 
+    const buildings = [];
     for (let gx = -4; gx <= 4; gx++) {
       for (let gz = -4; gz <= 4; gz++) {
-        if (Math.abs(gx) % 1 === 0 && Math.abs(gz) % 1 === 0) {
-          const cx = gx * 52 + 24;
-          const cz = gz * 52 + 24;
-          if (Math.abs(cx) < 18 && Math.abs(cz) < 18) continue;
-          addBox(34, 0.25, 34, cx, 0.13, cz, pavementMat, false, true);
-          const h = 10 + Math.random() * 34;
-          const b = addBox(18 + Math.random() * 11, h, 18 + Math.random() * 11, cx, h / 2 + 0.25, cz, buildingMats[Math.floor(Math.random() * buildingMats.length)]);
-          b.userData.type = 'building';
-        }
+        const cx = gx * 52 + 24;
+        const cz = gz * 52 + 24;
+        if (Math.abs(cx) < 18 && Math.abs(cz) < 18) continue;
+        addBox(34, 0.25, 34, cx, 0.13, cz, pavementMat, false, true);
+        const h = 10 + Math.random() * 34;
+        const bw = 18 + Math.random() * 11;
+        const bd = 18 + Math.random() * 11;
+        const b = addBox(
+          bw,
+          h,
+          bd,
+          cx,
+          h / 2 + 0.25,
+          cz,
+          buildingMats[Math.floor(Math.random() * buildingMats.length)],
+          true,
+          true,
+          true
+        );
+        b.userData.type = 'building';
+        buildings.push(b);
       }
     }
 
@@ -232,7 +338,7 @@
       });
       car.position.set(x, 0, z);
       car.rotation.y = Math.random() * Math.PI * 2;
-      car.userData = { speed: 0, turn: 0, occupied: false };
+      car.userData = { speed: 0, steering: 0, occupied: false, health: 100 };
       scene.add(car);
       return car;
     }
@@ -247,6 +353,10 @@
 
     const keys = {};
     let pointerLocked = false;
+    let pointerLockAvailable = false;
+    let dragLookActive = false;
+    let lastPointerX = 0;
+    let lastPointerY = 0;
     let yaw = 0;
     let pitch = -0.15;
     let mode = 'walking';
@@ -260,19 +370,106 @@
     });
     document.addEventListener('keyup', (e) => keys[e.code] = false);
 
-    document.body.addEventListener('click', () => {
-      if (!pointerLocked) document.body.requestPointerLock();
+    function applyLookDelta(dx, dy) {
+      yaw -= dx * 0.0022;
+      pitch -= dy * 0.0018;
+      pitch = Math.max(-0.85, Math.min(0.35, pitch));
+    }
+
+    async function tryPointerLock() {
+      if (!document.body.requestPointerLock || pointerLocked) return;
+      try {
+        const maybePromise = document.body.requestPointerLock();
+        if (maybePromise && typeof maybePromise.then === 'function') await maybePromise;
+        pointerLockAvailable = true;
+      } catch (error) {
+        pointerLockAvailable = false;
+        pointerLocked = false;
+        lookText.textContent = 'Drag fallback';
+        showMessage('Pointer lock blocked by sandbox — drag to look instead');
+      }
+    }
+
+    renderer.domElement.addEventListener('click', () => tryPointerLock());
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      dragLookActive = true;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      renderer.domElement.setPointerCapture?.(e.pointerId);
     });
+    renderer.domElement.addEventListener('pointerup', (e) => {
+      dragLookActive = false;
+      renderer.domElement.releasePointerCapture?.(e.pointerId);
+    });
+    renderer.domElement.addEventListener('pointercancel', () => dragLookActive = false);
+
     document.addEventListener('pointerlockchange', () => {
       pointerLocked = document.pointerLockElement === document.body;
-      showMessage(pointerLocked ? 'Mouse locked — control camera active' : 'Mouse unlocked');
+      pointerLockAvailable = pointerLockAvailable || pointerLocked;
+      lookText.textContent = pointerLocked ? 'Pointer lock' : 'Drag fallback';
+      showMessage(pointerLocked ? 'Mouse locked — control camera active' : 'Pointer lock off — drag to look');
+    });
+    document.addEventListener('pointerlockerror', () => {
+      pointerLocked = false;
+      pointerLockAvailable = false;
+      lookText.textContent = 'Drag fallback';
+      showMessage('Pointer lock unavailable — drag to look');
     });
     document.addEventListener('mousemove', (e) => {
-      if (!pointerLocked) return;
-      yaw -= e.movementX * 0.0022;
-      pitch -= e.movementY * 0.0018;
-      pitch = Math.max(-0.85, Math.min(0.35, pitch));
+      if (pointerLocked) return applyLookDelta(e.movementX, e.movementY);
+      if (!dragLookActive) return;
+      const dx = e.clientX - lastPointerX;
+      const dy = e.clientY - lastPointerY;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      applyLookDelta(dx, dy);
     });
+
+    function clampToWorld(pos) {
+      pos.x = THREE.MathUtils.clamp(pos.x, -HALF_WORLD + 3, HALF_WORLD - 3);
+      pos.z = THREE.MathUtils.clamp(pos.z, -HALF_WORLD + 3, HALF_WORLD - 3);
+    }
+
+    function pointHitsCollider(x, z, radius) {
+      for (const c of colliders) {
+        const overlapX = Math.abs(x - c.x) < c.halfX + radius;
+        const overlapZ = Math.abs(z - c.z) < c.halfZ + radius;
+        if (overlapX && overlapZ) return c;
+      }
+      return null;
+    }
+
+    function tryMoveObject(object, delta, radius, damageOnHit = 0) {
+      const oldX = object.position.x;
+      const oldZ = object.position.z;
+      let hit = null;
+
+      object.position.x += delta.x;
+      clampToWorld(object.position);
+      hit = pointHitsCollider(object.position.x, object.position.z, radius);
+      if (hit) object.position.x = oldX;
+
+      object.position.z += delta.z;
+      clampToWorld(object.position);
+      const hitZ = pointHitsCollider(object.position.x, object.position.z, radius);
+      if (hitZ) object.position.z = oldZ;
+
+      const finalHit = hit || hitZ;
+      if (finalHit) registerCollision(damageOnHit);
+      return !finalHit;
+    }
+
+    function registerCollision(damage = 0) {
+      const now = performance.now();
+      collisionText.textContent = 'Impact';
+      gameState.lastCollisionTime = now;
+      gameState.collisions += 1;
+      if (damage > 0 && now - (registerCollision.lastDamageAt || 0) > 550) {
+        gameState.health = Math.max(0, gameState.health - damage);
+        registerCollision.lastDamageAt = now;
+        showMessage(`Impact -${damage} health`);
+      }
+    }
 
     function nearestCar() {
       let best = null;
@@ -303,7 +500,13 @@
         }
       } else {
         const exitOffset = new THREE.Vector3(3.5, 0, 0).applyAxisAngle(new THREE.Vector3(0,1,0), activeCar.rotation.y);
-        player.position.copy(activeCar.position).add(exitOffset);
+        const candidate = activeCar.position.clone().add(exitOffset);
+        if (pointHitsCollider(candidate.x, candidate.z, 0.8)) {
+          showMessage('Exit blocked');
+          return;
+        }
+        player.position.copy(candidate);
+        clampToWorld(player.position);
         player.visible = true;
         activeCar.userData.occupied = false;
         activeCar.userData.speed = 0;
@@ -324,29 +527,49 @@
       if (keys.KeyA) move.sub(right);
       if (move.lengthSq() > 0) {
         move.normalize();
-        player.position.addScaledVector(move, speed * dt);
-        player.rotation.y = Math.atan2(move.x, move.z);
-        playerVelocity.copy(move).multiplyScalar(speed);
+        const delta = move.clone().multiplyScalar(speed * dt);
+        const moved = tryMoveObject(player, delta, 0.75, 0);
+        if (moved) {
+          player.rotation.y = Math.atan2(move.x, move.z);
+          body.position.y = 1.15 + Math.sin(performance.now() * 0.014) * 0.05;
+        }
+        playerVelocity.copy(move).multiplyScalar(moved ? speed : 0);
       } else {
         playerVelocity.multiplyScalar(0.82);
+        body.position.y = THREE.MathUtils.lerp(body.position.y, 1.15, 0.12);
       }
     }
 
     function updateDriving(dt) {
       const car = activeCar;
-      const boost = keys.ShiftLeft || keys.ShiftRight ? 1.7 : 1;
-      const accel = 23 * boost;
-      const brake = 30;
-      const maxSpeed = 34 * boost;
+      if (!car) return;
+      const boost = keys.ShiftLeft || keys.ShiftRight ? 1.55 : 1;
+      const accel = 22 * boost;
+      const reverseAccel = 12;
+      const brake = 34;
+      const maxSpeed = 36 * boost;
+      const maxReverse = -13;
+
       if (keys.KeyW) car.userData.speed += accel * dt;
-      if (keys.KeyS) car.userData.speed -= brake * dt;
-      car.userData.speed *= 0.985;
-      car.userData.speed = Math.max(-12, Math.min(maxSpeed, car.userData.speed));
-      const turnPower = THREE.MathUtils.clamp(Math.abs(car.userData.speed) / 12, 0.25, 1);
-      if (keys.KeyA) car.rotation.y += 2.1 * turnPower * dt * Math.sign(car.userData.speed || 1);
-      if (keys.KeyD) car.rotation.y -= 2.1 * turnPower * dt * Math.sign(car.userData.speed || 1);
+      if (keys.KeyS) {
+        if (car.userData.speed > 0.5) car.userData.speed -= brake * dt;
+        else car.userData.speed -= reverseAccel * dt;
+      }
+      if (!keys.KeyW && !keys.KeyS) car.userData.speed *= Math.pow(0.08, dt);
+      else car.userData.speed *= Math.pow(0.35, dt);
+
+      car.userData.speed = THREE.MathUtils.clamp(car.userData.speed, maxReverse, maxSpeed);
+
+      const steerTarget = (keys.KeyA ? 1 : 0) + (keys.KeyD ? -1 : 0);
+      car.userData.steering = THREE.MathUtils.lerp(car.userData.steering, steerTarget, 1 - Math.pow(0.005, dt));
+      const speedFactor = THREE.MathUtils.clamp(Math.abs(car.userData.speed) / 18, 0.18, 1);
+      car.rotation.y += car.userData.steering * 2.45 * speedFactor * dt * Math.sign(car.userData.speed || 1);
+
       const forward = new THREE.Vector3(Math.sin(car.rotation.y), 0, Math.cos(car.rotation.y));
-      car.position.addScaledVector(forward, car.userData.speed * dt);
+      const delta = forward.multiplyScalar(car.userData.speed * dt);
+      const moved = tryMoveObject(car, delta, 2.4, Math.abs(car.userData.speed) > 12 ? 3 : 1);
+      if (!moved) car.userData.speed *= -0.22;
+
       yaw = THREE.MathUtils.lerp(yaw, car.rotation.y, 0.08);
     }
 
@@ -375,14 +598,20 @@
 
     function updateHUD() {
       modeText.textContent = mode === 'walking' ? 'Walking' : 'Driving';
-      const speed = mode === 'walking' ? playerVelocity.length() : Math.abs(activeCar.userData.speed);
+      const speed = mode === 'walking' ? playerVelocity.length() : Math.abs(activeCar?.userData.speed || 0);
       speedText.textContent = speed.toFixed(1);
+      healthText.textContent = Math.round(gameState.health);
+      healthBar.style.width = `${gameState.health}%`;
+      moneyText.textContent = gameState.money;
+      wantedText.textContent = '★'.repeat(gameState.wanted) + '☆'.repeat(5 - gameState.wanted);
+      if (performance.now() - gameState.lastCollisionTime > 650) collisionText.textContent = 'Clear';
       if (mode === 'walking') {
         const near = nearestCar();
         carText.textContent = near.car ? `${near.dist.toFixed(1)}m ${near.dist < 5.5 ? '(Press E)' : ''}` : 'None';
       } else {
         carText.textContent = 'Inside vehicle';
       }
+      if (!pointerLocked && !pointerLockAvailable) lookText.textContent = 'Drag fallback';
     }
 
     function addNeonSigns() {
@@ -396,6 +625,92 @@
     }
     addNeonSigns();
 
+    function worldToMap(x, z) {
+      const size = miniMap.width;
+      return {
+        x: ((x + HALF_WORLD) / WORLD_SIZE) * size,
+        y: ((z + HALF_WORLD) / WORLD_SIZE) * size
+      };
+    }
+
+    function drawTriangle(ctx, x, y, angle, size, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-angle);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(size * 0.65, size);
+      ctx.lineTo(-size * 0.65, size);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function updateMiniMap() {
+      const w = miniMap.width;
+      const h = miniMap.height;
+      miniCtx.clearRect(0, 0, w, h);
+      miniCtx.fillStyle = 'rgba(4, 12, 16, 0.94)';
+      miniCtx.fillRect(0, 0, w, h);
+
+      miniCtx.strokeStyle = 'rgba(255,255,255,0.14)';
+      miniCtx.lineWidth = 4;
+      for (let i = -4; i <= 4; i++) {
+        const p1 = worldToMap(-HALF_WORLD, i * 52);
+        const p2 = worldToMap(HALF_WORLD, i * 52);
+        miniCtx.beginPath(); miniCtx.moveTo(p1.x, p1.y); miniCtx.lineTo(p2.x, p2.y); miniCtx.stroke();
+        const p3 = worldToMap(i * 52, -HALF_WORLD);
+        const p4 = worldToMap(i * 52, HALF_WORLD);
+        miniCtx.beginPath(); miniCtx.moveTo(p3.x, p3.y); miniCtx.lineTo(p4.x, p4.y); miniCtx.stroke();
+      }
+
+      miniCtx.fillStyle = 'rgba(0,255,170,0.18)';
+      for (const c of colliders) {
+        const p = worldToMap(c.x - c.halfX, c.z - c.halfZ);
+        const p2 = worldToMap(c.x + c.halfX, c.z + c.halfZ);
+        miniCtx.fillRect(p.x, p.y, p2.x - p.x, p2.y - p.y);
+      }
+
+      for (const car of cars) {
+        const p = worldToMap(car.position.x, car.position.z);
+        drawTriangle(miniCtx, p.x, p.y, car.rotation.y, car === activeCar ? 6 : 4, car === activeCar ? '#ffee55' : '#ff5577');
+      }
+
+      const target = mode === 'walking' ? player : activeCar;
+      const p = worldToMap(target.position.x, target.position.z);
+      drawTriangle(miniCtx, p.x, p.y, mode === 'walking' ? player.rotation.y : activeCar.rotation.y, 6, '#00ffaa');
+
+      miniCtx.strokeStyle = 'rgba(0,255,170,0.5)';
+      miniCtx.lineWidth = 2;
+      miniCtx.strokeRect(1, 1, w - 2, h - 2);
+    }
+
+    function runSelfTests() {
+      const tests = [];
+      const assert = (name, condition) => tests.push({ name, pass: Boolean(condition) });
+
+      assert('THREE loaded', typeof THREE.Scene === 'function');
+      assert('renderer canvas created', renderer.domElement instanceof HTMLCanvasElement);
+      assert('player exists in scene', scene.children.includes(player));
+      assert('five cars created', cars.length === 5);
+      assert('buildings created', buildings.length > 20);
+      assert('colliders created', colliders.length === buildings.length);
+      assert('nearestCar returns object', typeof nearestCar() === 'object' && 'dist' in nearestCar());
+      assert('collision function exists', typeof pointHitsCollider === 'function');
+      assert('movement guard exists', typeof tryMoveObject === 'function');
+      assert('minimap canvas exists', miniMap instanceof HTMLCanvasElement);
+      assert('pointer lock guarded', typeof tryPointerLock === 'function');
+      assert('drag look fallback available', typeof applyLookDelta === 'function');
+      assert('mode starts walking', mode === 'walking');
+
+      const failed = tests.filter(t => !t.pass);
+      console.table(tests);
+      testBadge.textContent = failed.length ? `Self-tests failed: ${failed.length}` : `Self-tests passed: ${tests.length}`;
+      testBadge.style.color = failed.length ? '#ffb3b3' : '#baffea';
+      return { total: tests.length, failed };
+    }
+
     function animate() {
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
@@ -403,6 +718,7 @@
       else updateDriving(dt);
       updateCamera(dt);
       updateHUD();
+      updateMiniMap();
       renderer.render(scene, camera);
     }
 
@@ -412,7 +728,9 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    showMessage('Stage 2 prototype loaded');
+    window.__AURORA_STAGE2_TESTS__ = runSelfTests;
+    runSelfTests();
+    showMessage('Stage 2.1 loaded — collisions, minimap, handling upgraded');
     animate();
   </script>
 </body>
