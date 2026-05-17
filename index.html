@@ -153,38 +153,193 @@
     function clearInterior(){ while(interiorObjects.children.length) interiorObjects.remove(interiorObjects.children[0]); colliders=colliders.filter(c=>c.mode!=='interior'); interactiveZones=interactiveZones.filter(z=>z.sceneMode!=='interior'); }
     function enterTower(tower){ if(mode==='driving') return showMessage('Exit the car before entering tower'); cityReturnPosition=player.position.clone(); sceneMode='interior'; currentInterior=`Tower ${tower}`; interiorFloor=0; overviewCamera=false; cityObjects.visible=false; interiorObjects.visible=true; clearInterior(); buildTowerInterior(tower,interiorFloor); player.position.set(0,.25,38); yaw=Math.PI; showMessage(`Entered Tower ${tower} lobby`); }
     function exitInterior(){ sceneMode='city'; cityObjects.visible=true; interiorObjects.visible=false; clearInterior(); currentInterior=null; player.position.copy(cityReturnPosition||new THREE.Vector3(-310,.25,-182)); yaw=0; showMessage('Exited to city plaza'); }
-    function changeFloor(dir){ if(sceneMode!=='interior')return; interiorFloor=THREE.MathUtils.clamp(interiorFloor+dir,0,7); clearInterior(); buildTowerInterior(currentInterior.includes('A')?'A':'B',interiorFloor); player.position.set(-22,.25,24); showMessage(`${currentInterior} floor ${interiorFloor}`); }
-    function buildTowerInterior(tower,floor){
-      const floorName=floor===0?'Lobby':floor===7?'Roof / Executive':'Office Floor';
-      addBox(90,.3,90,0,0,0,floor===0?mats.lobby:mats.floor,false,true,false,'interior-floor',interiorObjects);
-      addBox(92,10,1,0,5,-45,mats.wall,true,true,true,'north wall',interiorObjects); addBox(92,10,1,0,5,45,mats.wall,true,true,true,'south wall',interiorObjects); addBox(1,10,92,-45,5,0,mats.wall,true,true,true,'west wall',interiorObjects); addBox(1,10,92,45,5,0,mats.wall,true,true,true,'east wall',interiorObjects);
-      addBox(16,10,16,0,5,0,mats.towerCore,true,true,true,'elevator core',interiorObjects);
-      addBox(10,10,18,-28,5,26,mats.stair,true,true,true,'stairwell shell',interiorObjects);
-      addBox(5,1,14,-28,1.2,26,mats.line,false,false,false,'stairs marker',interiorObjects);
-      interactiveZones.push({sceneMode:'interior',type:'exit',x:0,z:42,radius:7});
-      interactiveZones.push({sceneMode:'interior',type:'floor-up',x:-28,z:26,radius:7});
-      interactiveZones.push({sceneMode:'interior',type:'floor-down',x:-28,z:16,radius:7});
-      if(floor===0){
-        addBox(24,4,8,0,2,25,mats.door,true,true,false,'lobby exit glow',interiorObjects);
-        addBox(22,3,7,-18,1.7,8,mats.bridge,true,true,true,'reception desk',interiorObjects);
-        addBox(12,3,10,22,1.7,18,mats.station,true,true,true,'security desk',interiorObjects);
-        addBox(18,4,12,22,2,-20,mats.carpet,true,true,false,'waiting area',interiorObjects);
-        for(let i=0;i<5;i++) addBox(5,2,3,-32+i*8,1.1,-28,mats.carpet,true,true,true,'lobby seating',interiorObjects);
-      } else if(floor===7){
-        addBox(46,1.2,10,0,1,-30,mats.neon,false,false,false,'observation glass',interiorObjects);
-        addBox(22,4,15,20,2,16,mats.bridge,true,true,true,'executive office block',interiorObjects);
-        addBox(16,2,10,-20,1.2,-12,mats.carpet,true,true,true,'conference table',interiorObjects);
-        addBox(14,.8,14,0,.7,34,mats.redNeon,false,false,false,'roof helipad marker',interiorObjects);
-      } else {
-        addOfficeFloor(floor);
-      }
-      addBox(28,.15,3,0,.18,42,mats.door,false,false,false,'exit trigger marker',interiorObjects);
-      districtText.textContent=`${currentInterior} — ${floorName} ${floor}`;
+    function changeFloor(dir){
+      if(sceneMode!=='interior')return;
+      interiorFloor=THREE.MathUtils.clamp(interiorFloor+dir,-1,12);
+      clearInterior();
+      buildTowerInterior(currentInterior.includes('A')?'A':'B',interiorFloor);
+      player.position.set(-28,.25,24);
+      showMessage(`${currentInterior} ${floorLabel(interiorFloor)}`);
     }
-    function addOfficeFloor(floor){
-      addBox(78,.12,4,0,.35,18,mats.carpet,false,true,false,'main hallway',interiorObjects); addBox(4,.12,70,18,.35,0,mats.carpet,false,true,false,'side hallway',interiorObjects);
-      const roomData=[[-30,-28,18,18],[-8,-28,18,18],[28,-28,20,18],[-30,0,18,16],[32,0,18,16],[-30,30,18,14],[10,30,22,14],[34,30,14,14]];
-      roomData.forEach(([x,z,w,d],idx)=>{ addBox(w,8,1,x,4,z-d/2,mats.wall,true,true,true,'room wall',interiorObjects); addBox(w,8,1,x,4,z+d/2,mats.wall,true,true,true,'room wall',interiorObjects); addBox(1,8,d,x-w/2,4,z,mats.wall,true,true,true,'room wall',interiorObjects); addBox(1,8,d,x+w/2,4,z,mats.wall,true,true,true,'room wall',interiorObjects); addBox(w*.45,1.4,d*.28,x,1,z,idx%3===0?mats.station:mats.carpet,true,true,true,idx%3===0?'server/meeting table':'desk cluster',interiorObjects); });
+
+    function floorLabel(floor){
+      if(floor===-1)return 'Basement Parking';
+      if(floor===0)return 'Lobby';
+      if(floor===1)return 'Admin Floor';
+      if(floor===2)return 'Conference Floor';
+      if(floor===3)return 'Open Office Floor';
+      if(floor===4)return 'Finance Floor';
+      if(floor===5)return 'IT / Server Floor';
+      if(floor===6)return 'Legal Records Floor';
+      if(floor===7)return 'Executive Floor';
+      if(floor===8)return 'Maintenance Floor';
+      if(floor===9)return 'Observation Floor';
+      if(floor===10)return 'Skybridge Plant Room';
+      if(floor===11)return 'Penthouse Office';
+      if(floor===12)return 'Rooftop';
+      return `Floor ${floor}`;
+    }
+
+    function buildTowerInterior(tower,floor){
+      const label=floorLabel(floor);
+      addInteriorShell(label);
+      addCoreSystems();
+      addNavigationZones();
+
+      if(floor===-1) addBasementParking(tower);
+      else if(floor===0) addLobbyFloor(tower);
+      else if(floor===1) addAdminFloor(tower);
+      else if(floor===2) addConferenceFloor(tower);
+      else if(floor===3) addOpenOfficeFloor(tower);
+      else if(floor===4) addFinanceFloor(tower);
+      else if(floor===5) addServerFloor(tower);
+      else if(floor===6) addRecordsFloor(tower);
+      else if(floor===7) addExecutiveFloor(tower);
+      else if(floor===8) addMaintenanceFloor(tower);
+      else if(floor===9) addObservationFloor(tower);
+      else if(floor===10) addPlantFloor(tower);
+      else if(floor===11) addPenthouseFloor(tower);
+      else addRooftop(tower);
+
+      addFloorSignage(tower,floor,label);
+      districtText.textContent=`${currentInterior} — ${label}`;
+    }
+
+    function addInteriorShell(label){
+      addBox(104,.3,104,0,0,0,label.includes('Lobby')?mats.lobby:mats.floor,false,true,false,'interior-floor',interiorObjects);
+      addBox(106,10,1,0,5,-52,mats.wall,true,true,true,'north wall',interiorObjects);
+      addBox(106,10,1,0,5,52,mats.wall,true,true,true,'south wall',interiorObjects);
+      addBox(1,10,106,-52,5,0,mats.wall,true,true,true,'west wall',interiorObjects);
+      addBox(1,10,106,52,5,0,mats.wall,true,true,true,'east wall',interiorObjects);
+      addBox(104,.35,104,0,9.8,0,mat(0x1d252d),false,true,false,'ceiling',interiorObjects);
+    }
+
+    function addCoreSystems(){
+      addBox(18,10,18,0,5,0,mats.towerCore,true,true,true,'elevator core',interiorObjects);
+      addBox(5,8,4,-5,4.2,10,mats.door,false,false,false,'lift door A',interiorObjects);
+      addBox(5,8,4,5,4.2,10,mats.door,false,false,false,'lift door B',interiorObjects);
+      addBox(12,10,22,-32,5,24,mats.stair,true,true,true,'stairwell shell',interiorObjects);
+      addBox(8,1.1,16,-32,1.1,24,mats.line,false,false,false,'stairwell marker',interiorObjects);
+      addBox(4,5,1,-32,3.2,12,mats.door,false,false,false,'stairwell door',interiorObjects);
+    }
+
+    function addNavigationZones(){
+      interactiveZones.push({sceneMode:'interior',type:'exit',x:0,z:48,radius:7});
+      interactiveZones.push({sceneMode:'interior',type:'floor-up',x:-32,z:25,radius:7});
+      interactiveZones.push({sceneMode:'interior',type:'floor-down',x:-32,z:15,radius:7});
+      interactiveZones.push({sceneMode:'interior',type:'floor-up',x:0,z:11,radius:7});
+      interactiveZones.push({sceneMode:'interior',type:'floor-down',x:7,z:11,radius:7});
+    }
+
+    function addFloorSignage(tower,floor,label){
+      addBox(28,.15,3,0,.18,48,mats.door,false,false,false,'exit trigger marker',interiorObjects);
+      addBox(18,4,.6,0,4.2,50.5,mats.neon,false,false,false,`${tower} ${label} sign`,interiorObjects);
+      addBox(10,3,.6,-32,4.2,12.8,mats.subwayLine,false,false,false,'stairs sign',interiorObjects);
+    }
+
+    function wall(x,z,w,d){ addBox(w,8,d,x,4,z,mats.wall,true,true,true,'interior partition',interiorObjects); }
+    function glassWall(x,z,w,d){ addBox(w,7,d,x,3.8,z,mats.glass,true,true,true,'glass partition',interiorObjects); }
+    function desk(x,z,rot=0){ const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=rot; const top=new THREE.Mesh(new THREE.BoxGeometry(7,.6,3.2),mats.bridge); top.position.y=1.1; g.add(top); const screen=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.4,.25),mats.neon); screen.position.set(0,2.1,-1.25); g.add(screen); const chair=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,2),mats.carpet); chair.position.set(0,.8,2.5); g.add(chair); interiorObjects.add(g); return g; }
+    function table(x,z,w=14,d=5){ addBox(w,1.2,d,x,.8,z,mats.bridge,true,true,true,'table',interiorObjects); }
+    function sofa(x,z,w=10){ addBox(w,1.6,3,x,.9,z,mats.carpet,true,true,true,'sofa',interiorObjects); }
+    function plant(x,z){ addBox(2,1.4,2,x,.75,z,mat(0x4a3322),true,true,true,'plant pot',interiorObjects); addBox(4,4,4,x,3,z,mat(0x1c6b35),true,true,false,'plant leaves',interiorObjects); }
+    function vending(x,z){ addBox(4,7,3,x,3.5,z,mats.redNeon,true,true,true,'vending machine',interiorObjects); }
+    function filing(x,z,w=4){ addBox(w,5,3,x,2.5,z,mat(0x4b555f),true,true,true,'filing cabinet',interiorObjects); }
+    function serverRack(x,z){ addBox(4,7,3,x,3.5,z,mats.tunnel,true,true,true,'server rack',interiorObjects); addBox(3,.3,.2,x,5,z-1.6,mats.neon,false,false,false,'server lights',interiorObjects); }
+
+    function addBasementParking(tower){
+      addBox(92,.12,18,0,.35,0,mats.road,false,true,false,'parking lane',interiorObjects);
+      addBox(18,.12,92,0,.36,0,mats.road,false,true,false,'parking lane cross',interiorObjects);
+      for(let i=-3;i<=3;i++){ addBox(9,.08,16,i*12,.45,-32,mats.line,false,false,false,'parking bay',interiorObjects); addBox(9,.08,16,i*12,.45,32,mats.line,false,false,false,'parking bay',interiorObjects); }
+      addBox(18,4,28,28,2,-30,mats.station,true,true,true,'security booth',interiorObjects);
+      addBox(22,5,14,-25,2.6,-28,mats.tunnel,true,true,true,'loading dock',interiorObjects);
+      addBox(18,5,10,30,2.6,28,mats.bridge,true,true,true,'generator room',interiorObjects);
+      for(let i=0;i<5;i++) addBox(3,2,6,-36+i*14,1.2,34,Math.random()>.5?mats.redNeon:mats.neon,true,true,true,'parked car block',interiorObjects);
+    }
+
+    function addLobbyFloor(tower){
+      addBox(32,5,10,0,2.8,30,mats.door,true,true,false,'main entrance glow',interiorObjects);
+      addBox(26,3,8,-20,1.7,10,mats.bridge,true,true,true,'reception desk',interiorObjects);
+      addBox(14,4,10,24,2,16,mats.station,true,true,true,'security desk',interiorObjects);
+      sofa(26,-22,14); sofa(8,-28,12); table(18,-25,9,4); plant(-42,38); plant(42,38); plant(-42,-42); plant(42,-42);
+      wall(-18,-14,1,34); glassWall(22,-8,1,25); vending(-42,8); vending(-42,16);
+      addBox(20,4,16,-25,-.2,-32,mats.carpet,true,true,false,'waiting lounge rug',interiorObjects);
+    }
+
+    function addAdminFloor(tower){
+      addBox(86,.12,4,0,.35,18,mats.carpet,false,true,false,'main hallway',interiorObjects); addBox(4,.12,78,18,.35,0,mats.carpet,false,true,false,'side hallway',interiorObjects);
+      for(let z=-34;z<=34;z+=17){ wall(-12,z,1,13); glassWall(32,z,1,13); desk(-30,z,0); desk(36,z,Math.PI); }
+      filing(-43,-35); filing(-43,-28); filing(43,34); plant(42,-42);
+    }
+
+    function addConferenceFloor(tower){
+      glassWall(0,-22,72,1); glassWall(0,22,72,1); wall(-36,0,1,44); wall(36,0,1,44);
+      table(0,-34,34,8); table(0,34,34,8); table(-22,0,18,6); table(22,0,18,6);
+      for(let i=-4;i<=4;i++){ sofa(i*7,-40,4); sofa(i*7,40,4); }
+      addBox(20,6,.6,0,-999,0,mats.neon,false,false,false,'unused',interiorObjects);
+      addBox(20,5,.8,0,4,-51,mats.neon,false,false,false,'presentation wall',interiorObjects);
+    }
+
+    function addOpenOfficeFloor(tower){
+      addBox(90,.12,5,0,.35,18,mats.carpet,false,true,false,'main hall',interiorObjects); addBox(5,.12,86,20,.35,0,mats.carpet,false,true,false,'cross hall',interiorObjects);
+      for(let x=-36;x<=36;x+=18){ for(let z=-34;z<=34;z+=17){ if(Math.abs(x)<12&&Math.abs(z)<12)continue; desk(x,z,(x>0?Math.PI:0)); } }
+      wall(-43,0,1,80); wall(43,0,1,80); glassWall(0,-43,80,1); filing(-43,38); filing(43,38); vending(0,42);
+    }
+
+    function addFinanceFloor(tower){
+      addBox(88,.12,4,0,.35,18,mats.carpet,false,true,false,'finance corridor',interiorObjects);
+      wall(-5,-22,1,42); wall(28,-22,1,42); glassWall(12,-42,34,1); glassWall(12,0,34,1);
+      for(let i=0;i<12;i++) desk(-38+(i%4)*10,-30+Math.floor(i/4)*14,0);
+      addBox(20,5,14,28,2.6,-32,mats.tunnel,true,true,true,'vault room',interiorObjects); filing(38,-6,7); filing(38,4,7); table(8,28,26,7);
+    }
+
+    function addServerFloor(tower){
+      wall(-24,0,1,86); wall(24,0,1,86); addBox(88,.12,4,0,.35,22,mats.carpet,false,true,false,'server corridor',interiorObjects);
+      for(let x=-38;x<=38;x+=12){ for(let z=-34;z<=8;z+=12){ if(Math.abs(x)<12&&Math.abs(z)<12)continue; serverRack(x,z); } }
+      addBox(18,5,12,34,2.7,34,mats.station,true,true,true,'network ops room',interiorObjects); desk(34,36,Math.PI); vending(-42,40);
+    }
+
+    function addRecordsFloor(tower){
+      addBox(86,.12,4,0,.35,18,mats.carpet,false,true,false,'records hall',interiorObjects);
+      for(let x=-38;x<=38;x+=12){ for(let z=-35;z<=35;z+=14){ if(Math.abs(x)<13&&Math.abs(z)<13)continue; filing(x,z,7); } }
+      wall(0,-34,70,1); wall(0,34,70,1); addBox(16,5,12,36,2.7,0,mats.tunnel,true,true,true,'archive vault',interiorObjects);
+    }
+
+    function addExecutiveFloor(tower){
+      glassWall(0,-20,82,1); wall(-20,12,1,34); wall(20,12,1,34);
+      table(0,-34,34,9); addBox(26,3,12,-30,1.7,25,mats.bridge,true,true,true,'executive desk',interiorObjects); sofa(28,25,16); table(28,18,10,5); plant(-42,38); plant(42,38); addBox(32,5,.8,0,4,-51,mats.neon,false,false,false,'skyline glass wall',interiorObjects);
+    }
+
+    function addMaintenanceFloor(tower){
+      addBox(80,.12,6,0,.35,0,mats.tunnel,false,true,false,'service corridor',interiorObjects); addBox(6,.12,80,0,.36,0,mats.tunnel,false,true,false,'service cross corridor',interiorObjects);
+      for(let i=-3;i<=3;i++){ addBox(8,6,8,i*13,3,-28,mats.bridge,true,true,true,'hvac unit',interiorObjects); addBox(8,6,8,i*13,3,32,mats.station,true,true,true,'plant machinery',interiorObjects); }
+      wall(-42,0,1,80); wall(42,0,1,80); vending(36,-38);
+    }
+
+    function addObservationFloor(tower){
+      addBox(86,.12,86,0,.35,0,mats.carpet,false,true,false,'observation carpet',interiorObjects);
+      glassWall(0,-46,88,1); glassWall(0,46,88,1); glassWall(-46,0,1,88); glassWall(46,0,1,88);
+      for(let i=0;i<10;i++){ table(Math.cos(i*.63)*30,Math.sin(i*.63)*30,6,3); }
+      addBox(18,3,18,0,1.7,-28,mats.neon,false,false,false,'city model',interiorObjects); sofa(-28,30,12); sofa(28,30,12);
+    }
+
+    function addPlantFloor(tower){
+      addBox(90,.12,8,0,.35,0,mats.tunnel,false,true,false,'plant walkway',interiorObjects);
+      addBox(8,.12,90,0,.36,0,mats.tunnel,false,true,false,'plant walkway cross',interiorObjects);
+      for(let x=-34;x<=34;x+=17){ addBox(10,7,14,x,3.5,-28,mats.bridge,true,true,true,'water tank',interiorObjects); addBox(10,7,14,x,3.5,28,mats.station,true,true,true,'air handler',interiorObjects); }
+    }
+
+    function addPenthouseFloor(tower){
+      glassWall(0,-44,88,1); glassWall(44,0,1,88); wall(-44,0,1,88); wall(0,44,88,1);
+      addBox(30,4,18,-18,2.3,-24,mats.bridge,true,true,true,'private office',interiorObjects); addBox(24,3,12,24,1.8,24,mats.carpet,true,true,true,'private lounge',interiorObjects); table(20,-22,22,7); sofa(-24,28,18); plant(38,-38); plant(-38,38);
+    }
+
+    function addRooftop(tower){
+      addBox(104,.45,104,0,.1,0,mat(0x202830),false,true,false,'roof deck',interiorObjects);
+      addBox(20,5,14,-30,2.7,28,mats.towerCore,true,true,true,'roof access shack',interiorObjects);
+      addBox(36,.22,36,18,.45,-18,mats.redNeon,false,false,false,'helipad H marker',interiorObjects);
+      for(let i=-2;i<=2;i++){ addBox(10,5,8,i*16,2.6,34,mats.station,true,true,true,'roof hvac',interiorObjects); }
+      addBox(106,3,2,0,1.6,-52,mats.bridge,true,true,true,'roof rail',interiorObjects); addBox(106,3,2,0,1.6,52,mats.bridge,true,true,true,'roof rail',interiorObjects); addBox(2,3,106,-52,1.6,0,mats.bridge,true,true,true,'roof rail',interiorObjects); addBox(2,3,106,52,1.6,0,mats.bridge,true,true,true,'roof rail',interiorObjects);
     }
 
     const keys={}; let pointerLocked=false,pointerLockAvailable=false,dragLookActive=false,overviewCamera=false,lastPointerX=0,lastPointerY=0,yaw=0,pitch=-.15,mode='walking',activeCar=null,playerVelocity=new THREE.Vector3(); const clock=new THREE.Clock();
