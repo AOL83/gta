@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aurora Stage 2.1 — 3D City Prototype</title>
+  <title>Aurora Stage 3.0 — GTA City Shell</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -32,13 +32,13 @@
       gap: 12px;
     }
     .panel {
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.58);
       border: 1px solid rgba(0, 255, 170, 0.35);
       box-shadow: 0 0 18px rgba(0, 255, 170, 0.18);
       border-radius: 14px;
       padding: 12px 14px;
       backdrop-filter: blur(8px);
-      max-width: 390px;
+      max-width: 410px;
     }
     .title {
       font-size: 15px;
@@ -87,7 +87,7 @@
       transform: translateX(-50%);
       padding: 12px 18px;
       border-radius: 999px;
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.68);
       border: 1px solid rgba(255, 255, 255, 0.18);
       color: #fff;
       font-size: 14px;
@@ -102,8 +102,8 @@
       position: fixed;
       left: 14px;
       bottom: 14px;
-      width: 170px;
-      height: 170px;
+      width: 210px;
+      height: 210px;
       border-radius: 18px;
       overflow: hidden;
       border: 1px solid rgba(0, 255, 170, 0.38);
@@ -112,11 +112,7 @@
       z-index: 12;
       pointer-events: none;
     }
-    #miniMap {
-      width: 170px;
-      height: 170px;
-      display: block;
-    }
+    #miniMap { width: 210px; height: 210px; display: block; }
     #testBadge {
       position: fixed;
       right: 14px;
@@ -130,13 +126,13 @@
       color: #baffea;
       pointer-events: none;
     }
-    @media (max-width: 700px) {
+    @media (max-width: 760px) {
       #hud { padding: 10px; flex-direction: column; gap: 10px; }
       .panel { max-width: 100%; width: 100%; }
       .line { font-size: 12px; }
-      #message { bottom: 190px; max-width: 92vw; white-space: normal; text-align: center; }
-      #miniMapWrap { width: 135px; height: 135px; }
-      #miniMap { width: 135px; height: 135px; }
+      #message { bottom: 235px; max-width: 92vw; white-space: normal; text-align: center; }
+      #miniMapWrap { width: 155px; height: 155px; }
+      #miniMap { width: 155px; height: 155px; }
       #testBadge { right: 10px; bottom: 10px; }
     }
   </style>
@@ -144,19 +140,20 @@
 <body>
   <div id="hud">
     <div class="panel">
-      <div class="title">Aurora Stage 2.1</div>
+      <div class="title">Aurora Stage 3.0</div>
       <div class="line"><strong>Mode:</strong> <span id="modeText">Walking</span></div>
+      <div class="line"><strong>District:</strong> <span id="districtText">Downtown</span></div>
       <div class="line"><strong>Speed:</strong> <span id="speedText">0</span></div>
       <div class="line"><strong>Nearest car:</strong> <span id="carText">None</span></div>
       <div class="line"><strong>Look mode:</strong> <span id="lookText">Drag fallback</span></div>
     </div>
     <div class="panel">
-      <div class="title">Player</div>
+      <div class="title">World Shell</div>
       <div class="line"><strong>Health:</strong> <span id="healthText">100</span>%</div>
       <div class="barWrap"><div id="healthBar" class="barFill"></div></div>
       <div class="line"><strong>Money:</strong> £<span id="moneyText">250</span></div>
       <div class="line"><strong>Wanted:</strong> <span id="wantedText">☆☆☆☆☆</span></div>
-      <div class="line"><strong>Collision:</strong> <span id="collisionText">Clear</span></div>
+      <div class="line"><strong>Nearby:</strong> <span id="nearbyText">City grid</span></div>
     </div>
     <div class="panel">
       <div class="title">Controls</div>
@@ -164,26 +161,26 @@
       <div class="line">Mouse drag = look around</div>
       <div class="line">E = enter / exit car</div>
       <div class="line">Shift = sprint / boost</div>
-      <div class="line">Click attempts pointer lock; sandbox fallback is safe</div>
+      <div class="line">M = jump to city overview camera</div>
     </div>
   </div>
   <div id="crosshair"></div>
-  <div id="miniMapWrap"><canvas id="miniMap" width="170" height="170"></canvas></div>
+  <div id="miniMapWrap"><canvas id="miniMap" width="210" height="210"></canvas></div>
   <div id="message">Ready</div>
   <div id="testBadge">Self-tests pending</div>
 
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 
-    const WORLD_SIZE = 500;
+    const WORLD_SIZE = 2200;
     const HALF_WORLD = WORLD_SIZE / 2;
+    const WATER_LEVEL = -0.06;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x071019);
-    scene.fog = new THREE.Fog(0x071019, 70, 260);
+    scene.fog = new THREE.Fog(0x071019, 180, 1600);
 
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-
+    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 4000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -194,6 +191,7 @@
     const miniMap = document.getElementById('miniMap');
     const miniCtx = miniMap.getContext('2d');
     const modeText = document.getElementById('modeText');
+    const districtText = document.getElementById('districtText');
     const speedText = document.getElementById('speedText');
     const carText = document.getElementById('carText');
     const lookText = document.getElementById('lookText');
@@ -201,19 +199,19 @@
     const healthBar = document.getElementById('healthBar');
     const moneyText = document.getElementById('moneyText');
     const wantedText = document.getElementById('wantedText');
-    const collisionText = document.getElementById('collisionText');
+    const nearbyText = document.getElementById('nearbyText');
     const message = document.getElementById('message');
     const testBadge = document.getElementById('testBadge');
 
-    const gameState = {
-      health: 100,
-      money: 250,
-      wanted: 0,
-      lastCollisionTime: 0,
-      collisions: 0
-    };
-
+    const gameState = { health: 100, money: 250, wanted: 0, lastCollisionTime: 0, collisions: 0 };
     const colliders = [];
+    const buildings = [];
+    const roads = [];
+    const highways = [];
+    const bridges = [];
+    const metroEntrances = [];
+    const interiorDoors = [];
+    const districts = [];
 
     function showMessage(text) {
       message.textContent = text;
@@ -222,121 +220,264 @@
       showMessage.timer = setTimeout(() => message.classList.remove('show'), 1800);
     }
 
-    const hemi = new THREE.HemisphereLight(0x9fdcff, 0x202020, 1.25);
-    scene.add(hemi);
+    function mat(color, options = {}) {
+      return new THREE.MeshStandardMaterial({ color, roughness: options.roughness ?? 0.82, metalness: options.metalness ?? 0, emissive: options.emissive ?? 0x000000, emissiveIntensity: options.emissiveIntensity ?? 0 });
+    }
 
-    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
-    sun.position.set(60, 100, 30);
+    const mats = {
+      grass: mat(0x18281d),
+      islandGrass: mat(0x1e3025),
+      water: new THREE.MeshStandardMaterial({ color: 0x072633, roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0.86 }),
+      road: mat(0x11151a, { roughness: 0.94 }),
+      highway: mat(0x171b20, { roughness: 0.9 }),
+      line: mat(0xffe066, { emissive: 0x665000, emissiveIntensity: 0.3 }),
+      pavement: mat(0x2d343a),
+      bridge: mat(0x3e454b, { roughness: 0.74, metalness: 0.15 }),
+      tunnel: mat(0x15191f),
+      station: mat(0x263541, { emissive: 0x062033, emissiveIntensity: 0.25 }),
+      subwayLine: mat(0x00ffaa, { emissive: 0x00ffaa, emissiveIntensity: 0.9 }),
+      door: mat(0xffee55, { emissive: 0xffaa00, emissiveIntensity: 0.8 }),
+      neon: mat(0x00ffaa, { emissive: 0x00ffaa, emissiveIntensity: 1.4 }),
+      redNeon: mat(0xff3355, { emissive: 0xff2244, emissiveIntensity: 1.1 })
+    };
+
+    scene.add(new THREE.HemisphereLight(0x9fdcff, 0x172018, 1.28));
+    const sun = new THREE.DirectionalLight(0xffffff, 2.35);
+    sun.position.set(260, 420, 160);
     sun.castShadow = true;
-    sun.shadow.camera.left = -140;
-    sun.shadow.camera.right = 140;
-    sun.shadow.camera.top = 140;
-    sun.shadow.camera.bottom = -140;
+    sun.shadow.camera.left = -850;
+    sun.shadow.camera.right = 850;
+    sun.shadow.camera.top = 850;
+    sun.shadow.camera.bottom = -850;
     sun.shadow.mapSize.width = 2048;
     sun.shadow.mapSize.height = 2048;
     scene.add(sun);
 
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE),
-      new THREE.MeshStandardMaterial({ color: 0x162025, roughness: 0.95 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    scene.add(ground);
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE), mats.water);
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = WATER_LEVEL;
+    water.receiveShadow = true;
+    scene.add(water);
 
-    const roadMat = new THREE.MeshStandardMaterial({ color: 0x11151a, roughness: 0.9 });
-    const lineMat = new THREE.MeshStandardMaterial({ color: 0xffe066, emissive: 0x665000, emissiveIntensity: 0.25 });
-    const pavementMat = new THREE.MeshStandardMaterial({ color: 0x2d343a, roughness: 0.9 });
-
-    function addBox(w, h, d, x, y, z, mat, cast = true, receive = true, collider = false) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    function addBox(w, h, d, x, y, z, material, cast = true, receive = true, collider = false, tag = '') {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
       mesh.position.set(x, y, z);
       mesh.castShadow = cast;
       mesh.receiveShadow = receive;
+      mesh.userData.tag = tag;
       scene.add(mesh);
-      if (collider) {
-        mesh.userData.collider = true;
-        mesh.userData.halfX = w / 2;
-        mesh.userData.halfZ = d / 2;
-        colliders.push({ mesh, x, z, halfX: w / 2, halfZ: d / 2 });
-      }
+      if (collider) addCollider(mesh, w, d, tag);
       return mesh;
     }
 
-    for (let i = -4; i <= 4; i++) {
-      addBox(WORLD_SIZE, 0.08, 12, 0, 0.04, i * 52, roadMat, false, true);
-      addBox(12, 0.08, WORLD_SIZE, i * 52, 0.045, 0, roadMat, false, true);
-      addBox(WORLD_SIZE, 0.1, 0.3, 0, 0.1, i * 52, lineMat, false, false);
-      addBox(0.3, 0.1, WORLD_SIZE, i * 52, 0.11, 0, lineMat, false, false);
+    function addCollider(mesh, w, d, tag = '') {
+      colliders.push({ mesh, x: mesh.position.x, z: mesh.position.z, halfX: w / 2, halfZ: d / 2, tag });
     }
 
-    const buildingMats = [
-      new THREE.MeshStandardMaterial({ color: 0x253241, roughness: 0.8 }),
-      new THREE.MeshStandardMaterial({ color: 0x3a2f3f, roughness: 0.85 }),
-      new THREE.MeshStandardMaterial({ color: 0x203b35, roughness: 0.8 }),
-      new THREE.MeshStandardMaterial({ color: 0x3d3b32, roughness: 0.9 })
-    ];
+    function addLand(name, x, z, w, d, material) {
+      const land = addBox(w, 0.22, d, x, 0, z, material, false, true, false, name);
+      districts.push({ name, x, z, halfX: w / 2, halfZ: d / 2 });
+      return land;
+    }
 
-    const buildings = [];
-    for (let gx = -4; gx <= 4; gx++) {
-      for (let gz = -4; gz <= 4; gz++) {
-        const cx = gx * 52 + 24;
-        const cz = gz * 52 + 24;
-        if (Math.abs(cx) < 18 && Math.abs(cz) < 18) continue;
-        addBox(34, 0.25, 34, cx, 0.13, cz, pavementMat, false, true);
-        const h = 10 + Math.random() * 34;
-        const bw = 18 + Math.random() * 11;
-        const bd = 18 + Math.random() * 11;
-        const b = addBox(
-          bw,
-          h,
-          bd,
-          cx,
-          h / 2 + 0.25,
-          cz,
-          buildingMats[Math.floor(Math.random() * buildingMats.length)],
-          true,
-          true,
-          true
-        );
-        b.userData.type = 'building';
-        buildings.push(b);
+    addLand('Downtown Core', -250, -100, 760, 720, mats.grass);
+    addLand('North Residential Borough', -330, -650, 680, 420, mats.grass);
+    addLand('Industrial Docks', -360, 520, 760, 420, mats.grass);
+    addLand('East Island Borough', 620, -20, 520, 640, mats.islandGrass);
+    addLand('Airport / Service Flats', 240, 610, 420, 260, mats.grass);
+
+    function addRoad(x, z, w, d, kind = 'local') {
+      const material = kind === 'highway' ? mats.highway : mats.road;
+      const y = kind === 'highway' ? 4.4 : 0.13;
+      const h = kind === 'highway' ? 0.38 : 0.09;
+      const road = addBox(w, h, d, x, y, z, material, false, true, false, kind);
+      roads.push({ x, z, w, d, kind });
+      if (kind === 'highway') highways.push(road);
+      return road;
+    }
+
+    function addRoadLine(x, z, w, d, elevated = false) {
+      return addBox(w, 0.08, d, x, elevated ? 4.65 : 0.2, z, mats.line, false, false, false, 'road-line');
+    }
+
+    // Downtown grid
+    for (let x = -600; x <= 140; x += 90) {
+      addRoad(x, -100, 16, 720);
+      addRoadLine(x, -100, 0.45, 690);
+    }
+    for (let z = -430; z <= 260; z += 90) {
+      addRoad(-250, z, 760, 16);
+      addRoadLine(-250, z, 730, 0.45);
+    }
+
+    // North borough roads
+    for (let x = -620; x <= -60; x += 115) addRoad(x, -650, 14, 410);
+    for (let z = -820; z <= -500; z += 85) addRoad(-330, z, 660, 14);
+
+    // Industrial docks roads
+    for (let x = -680; x <= -60; x += 130) addRoad(x, 520, 16, 390);
+    for (let z = 360; z <= 700; z += 90) addRoad(-360, z, 730, 16);
+
+    // Island roads
+    for (let x = 420; x <= 810; x += 95) addRoad(x, -20, 15, 610);
+    for (let z = -290; z <= 240; z += 90) addRoad(620, z, 500, 15);
+
+    // Airport runway/service strip
+    addRoad(240, 610, 390, 32);
+    addRoadLine(240, 610, 350, 0.55);
+
+    // Elevated highway loop/spine
+    addRoad(-250, 35, 980, 34, 'highway');
+    addRoadLine(-250, 35, 930, 0.65, true);
+    addRoad(-125, -520, 34, 470, 'highway');
+    addRoadLine(-125, -520, 0.65, 420, true);
+    addRoad(210, 360, 34, 520, 'highway');
+    addRoadLine(210, 360, 0.65, 470, true);
+
+    function addBridge(name, x, z, w, d, rot = 0) {
+      const group = new THREE.Group();
+      group.position.set(x, 5.1, z);
+      group.rotation.y = rot;
+      const deck = new THREE.Mesh(new THREE.BoxGeometry(w, 0.55, d), mats.bridge);
+      deck.castShadow = true; deck.receiveShadow = true; group.add(deck);
+      const railL = new THREE.Mesh(new THREE.BoxGeometry(w, 1.2, 1.1), mats.bridge);
+      railL.position.z = d / 2 - 1; railL.position.y = 0.75; group.add(railL);
+      const railR = railL.clone(); railR.position.z = -d / 2 + 1; group.add(railR);
+      for (let i = -w/2 + 35; i <= w/2 - 35; i += 70) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(2.4, 15, 2.4), mats.bridge);
+        post.position.set(i, 7, d/2 - 4); group.add(post);
+        const post2 = post.clone(); post2.position.z = -d/2 + 4; group.add(post2);
+      }
+      scene.add(group);
+      bridges.push({ name, group, x, z, w, d, rot });
+      return group;
+    }
+
+    addBridge('East River Bridge', 265, 35, 330, 38, 0);
+    addBridge('South Service Bridge', 360, 360, 380, 24, Math.PI * 0.08);
+
+    // Highway bridge extension to island
+    addRoad(330, 35, 250, 34, 'highway');
+    addRoadLine(330, 35, 220, 0.65, true);
+    addRoad(520, 35, 240, 34, 'highway');
+    addRoadLine(520, 35, 210, 0.65, true);
+
+    function addBuilding(x, z, w, d, h, material, district, enterable = false) {
+      addBox(w + 8, 0.18, d + 8, x, 0.18, z, mats.pavement, false, true, false, 'pavement');
+      const b = addBox(w, h, d, x, h/2 + 0.28, z, material, true, true, true, district);
+      b.userData.district = district;
+      b.userData.enterable = enterable;
+      buildings.push(b);
+      if (enterable) {
+        const doorZ = z - d/2 - 0.6;
+        const door = addBox(3.6, 4.2, 0.35, x, 2.35, doorZ, mats.door, false, false, false, 'interior-door');
+        door.userData.targetInterior = `${district} interior placeholder`;
+        interiorDoors.push({ door, x, z: doorZ, district, building: b });
+      }
+      return b;
+    }
+
+    function fillDistrict(opts) {
+      const { name, minX, maxX, minZ, maxZ, stepX, stepZ, baseH, hRand, palette, enterableEvery = 7 } = opts;
+      let idx = 0;
+      for (let x = minX; x <= maxX; x += stepX) {
+        for (let z = minZ; z <= maxZ; z += stepZ) {
+          if (Math.abs((x % 90 + 90) % 90) < 18 || Math.abs((z % 90 + 90) % 90) < 18) continue;
+          if (pointNearRoad(x, z, 13)) continue;
+          const w = stepX * (0.42 + Math.random() * 0.18);
+          const d = stepZ * (0.42 + Math.random() * 0.18);
+          const h = baseH + Math.random() * hRand;
+          const material = palette[idx % palette.length];
+          addBuilding(x, z, w, d, h, material, name, idx % enterableEvery === 0);
+          idx++;
+        }
+      }
+    }
+
+    function pointNearRoad(x, z, pad) {
+      return roads.some(r => Math.abs(x - r.x) < r.w/2 + pad && Math.abs(z - r.z) < r.d/2 + pad);
+    }
+
+    const downtownPalette = [mat(0x27384a), mat(0x344153), mat(0x243642), mat(0x3e3c49)];
+    const residentialPalette = [mat(0x55382f), mat(0x4b4135), mat(0x31483a), mat(0x4f4d44)];
+    const industrialPalette = [mat(0x3f474b), mat(0x514a3d), mat(0x334049), mat(0x4a3b34)];
+    const islandPalette = [mat(0x394f5c), mat(0x533d56), mat(0x365344), mat(0x584c39)];
+
+    fillDistrict({ name: 'Downtown Core', minX: -570, maxX: 100, minZ: -390, maxZ: 230, stepX: 70, stepZ: 70, baseH: 28, hRand: 74, palette: downtownPalette, enterableEvery: 6 });
+    fillDistrict({ name: 'North Residential Borough', minX: -590, maxX: -90, minZ: -795, maxZ: -520, stepX: 75, stepZ: 65, baseH: 10, hRand: 26, palette: residentialPalette, enterableEvery: 5 });
+    fillDistrict({ name: 'Industrial Docks', minX: -650, maxX: -80, minZ: 385, maxZ: 680, stepX: 95, stepZ: 80, baseH: 12, hRand: 24, palette: industrialPalette, enterableEvery: 4 });
+    fillDistrict({ name: 'East Island Borough', minX: 420, maxX: 820, minZ: -270, maxZ: 230, stepX: 75, stepZ: 75, baseH: 14, hRand: 45, palette: islandPalette, enterableEvery: 5 });
+
+    // Docks, airport details, and landmarks
+    for (let i = 0; i < 8; i++) addBox(42, 5, 12, -665 + i * 75, 2.7, 745, mats.bridge, true, true, false, 'dock-pier');
+    addBox(150, 26, 70, 215, 13, 700, mat(0x303943), true, true, true, 'airport-hangar');
+    addBox(70, 38, 48, 375, 19, 670, mat(0x29333d), true, true, true, 'airport-terminal');
+
+    function addMetroEntrance(name, x, z, rot = 0) {
+      const group = new THREE.Group();
+      group.position.set(x, 0.35, z);
+      group.rotation.y = rot;
+      const base = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 10), mats.station);
+      base.position.y = 0.6; group.add(base);
+      const stair = new THREE.Mesh(new THREE.BoxGeometry(8, 0.7, 13), mats.tunnel);
+      stair.position.set(0, 0.55, -5); group.add(stair);
+      const sign = new THREE.Mesh(new THREE.BoxGeometry(13, 4, 0.5), mats.subwayLine);
+      sign.position.set(0, 4.0, 4.8); group.add(sign);
+      scene.add(group);
+      metroEntrances.push({ name, group, x, z, rot });
+      return group;
+    }
+
+    addMetroEntrance('Central Metro', -250, -55, 0);
+    addMetroEntrance('North Metro', -330, -620, Math.PI / 2);
+    addMetroEntrance('Docklands Subway', -455, 520, 0);
+    addMetroEntrance('Island Metro', 620, -65, Math.PI / 2);
+    addMetroEntrance('Airport Metro', 305, 610, 0);
+
+    // Visible subway route lines below surface
+    function addSubwayTunnel(x, z, w, d) {
+      const tunnel = addBox(w, 0.35, d, x, -2.2, z, mats.tunnel, false, false, false, 'subway-tunnel');
+      const line = addBox(w > d ? w : 0.45, 0.12, d >= w ? d : 0.45, x, -1.9, z, mats.subwayLine, false, false, false, 'subway-route');
+      return tunnel;
+    }
+    addSubwayTunnel(-250, -335, 9, 570);
+    addSubwayTunnel(-250, -55, 760, 9);
+    addSubwayTunnel(185, -65, 880, 9);
+    addSubwayTunnel(620, -65, 9, 430);
+    addSubwayTunnel(-455, 235, 9, 570);
+
+    function addNeonSigns() {
+      for (let i = 0; i < 55; i++) {
+        const b = buildings[Math.floor(Math.random() * buildings.length)];
+        if (!b) continue;
+        const c = b.position;
+        const signMat = Math.random() > 0.72 ? mats.redNeon : mats.neon;
+        addBox(7 + Math.random() * 8, 0.22, 1, c.x, Math.min(b.geometry.parameters.height - 3, 5 + Math.random() * 18), c.z - b.userData.halfZ || c.z - 7, signMat, false, false, false, 'neon-sign');
       }
     }
 
     const player = new THREE.Group();
-    const body = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.55, 1.05, 6, 12),
-      new THREE.MeshStandardMaterial({ color: 0x00ffaa, emissive: 0x003322, emissiveIntensity: 0.4 })
-    );
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.05, 6, 12), mat(0x00ffaa, { emissive: 0x003322, emissiveIntensity: 0.4 }));
     body.position.y = 1.15;
     body.castShadow = true;
     player.add(body);
-    player.position.set(0, 0, 8);
+    player.position.set(-245, 0.25, -70);
     scene.add(player);
 
     function createCar(x, z, color) {
       const car = new THREE.Group();
-      const mainMat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.2 });
-      const darkMat = new THREE.MeshStandardMaterial({ color: 0x07090b, roughness: 0.6 });
-      const body = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.9, 6), mainMat);
-      body.position.y = 0.75;
-      body.castShadow = true;
-      car.add(body);
+      const mainMat = mat(color, { roughness: 0.55, metalness: 0.2 });
+      const darkMat = mat(0x07090b, { roughness: 0.6 });
+      const carBody = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.9, 6), mainMat);
+      carBody.position.y = 0.75; carBody.castShadow = true; car.add(carBody);
       const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 2.4), darkMat);
-      cabin.position.set(0, 1.35, -0.45);
-      cabin.castShadow = true;
-      car.add(cabin);
+      cabin.position.set(0, 1.35, -0.45); cabin.castShadow = true; car.add(cabin);
       const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.38, 18);
-      const wheelPositions = [[-1.85,0.45,2], [1.85,0.45,2], [-1.85,0.45,-2], [1.85,0.45,-2]];
-      wheelPositions.forEach(([wx, wy, wz]) => {
+      [[-1.85,0.45,2], [1.85,0.45,2], [-1.85,0.45,-2], [1.85,0.45,-2]].forEach(([wx, wy, wz]) => {
         const wheel = new THREE.Mesh(wheelGeo, darkMat);
-        wheel.rotation.z = Math.PI / 2;
-        wheel.position.set(wx, wy, wz);
-        wheel.castShadow = true;
-        car.add(wheel);
+        wheel.rotation.z = Math.PI / 2; wheel.position.set(wx, wy, wz); wheel.castShadow = true; car.add(wheel);
       });
-      car.position.set(x, 0, z);
+      car.position.set(x, 0.25, z);
       car.rotation.y = Math.random() * Math.PI * 2;
       car.userData = { speed: 0, steering: 0, occupied: false, health: 100 };
       scene.add(car);
@@ -344,17 +485,18 @@
     }
 
     const cars = [
-      createCar(10, 0, 0xff3355),
-      createCar(-40, -12, 0x3388ff),
-      createCar(64, 58, 0xffcc33),
-      createCar(-88, 48, 0xeeeeee),
-      createCar(20, -78, 0x9b5cff)
+      createCar(-210, -45, 0xff3355), createCar(-350, -180, 0x3388ff), createCar(-120, 110, 0xffcc33),
+      createCar(610, -40, 0xffffff), createCar(690, 160, 0x9b5cff), createCar(-460, 540, 0xff8833),
+      createCar(230, 610, 0x66eeff), createCar(-125, -520, 0xdddddd)
     ];
+
+    addNeonSigns();
 
     const keys = {};
     let pointerLocked = false;
     let pointerLockAvailable = false;
     let dragLookActive = false;
+    let overviewCamera = false;
     let lastPointerX = 0;
     let lastPointerY = 0;
     let yaw = 0;
@@ -367,6 +509,7 @@
     document.addEventListener('keydown', (e) => {
       keys[e.code] = true;
       if (e.code === 'KeyE') toggleCarMode();
+      if (e.code === 'KeyM') { overviewCamera = !overviewCamera; showMessage(overviewCamera ? 'City overview camera' : 'Follow camera'); }
     });
     document.addEventListener('keyup', (e) => keys[e.code] = false);
 
@@ -383,354 +526,251 @@
         if (maybePromise && typeof maybePromise.then === 'function') await maybePromise;
         pointerLockAvailable = true;
       } catch (error) {
-        pointerLockAvailable = false;
-        pointerLocked = false;
-        lookText.textContent = 'Drag fallback';
+        pointerLockAvailable = false; pointerLocked = false; lookText.textContent = 'Drag fallback';
         showMessage('Pointer lock blocked by sandbox — drag to look instead');
       }
     }
 
     renderer.domElement.addEventListener('click', () => tryPointerLock());
     renderer.domElement.addEventListener('pointerdown', (e) => {
-      dragLookActive = true;
-      lastPointerX = e.clientX;
-      lastPointerY = e.clientY;
+      dragLookActive = true; lastPointerX = e.clientX; lastPointerY = e.clientY;
       renderer.domElement.setPointerCapture?.(e.pointerId);
     });
-    renderer.domElement.addEventListener('pointerup', (e) => {
-      dragLookActive = false;
-      renderer.domElement.releasePointerCapture?.(e.pointerId);
-    });
+    renderer.domElement.addEventListener('pointerup', (e) => { dragLookActive = false; renderer.domElement.releasePointerCapture?.(e.pointerId); });
     renderer.domElement.addEventListener('pointercancel', () => dragLookActive = false);
-
     document.addEventListener('pointerlockchange', () => {
       pointerLocked = document.pointerLockElement === document.body;
       pointerLockAvailable = pointerLockAvailable || pointerLocked;
       lookText.textContent = pointerLocked ? 'Pointer lock' : 'Drag fallback';
-      showMessage(pointerLocked ? 'Mouse locked — control camera active' : 'Pointer lock off — drag to look');
     });
-    document.addEventListener('pointerlockerror', () => {
-      pointerLocked = false;
-      pointerLockAvailable = false;
-      lookText.textContent = 'Drag fallback';
-      showMessage('Pointer lock unavailable — drag to look');
-    });
+    document.addEventListener('pointerlockerror', () => { pointerLocked = false; pointerLockAvailable = false; lookText.textContent = 'Drag fallback'; });
     document.addEventListener('mousemove', (e) => {
       if (pointerLocked) return applyLookDelta(e.movementX, e.movementY);
       if (!dragLookActive) return;
-      const dx = e.clientX - lastPointerX;
-      const dy = e.clientY - lastPointerY;
-      lastPointerX = e.clientX;
-      lastPointerY = e.clientY;
-      applyLookDelta(dx, dy);
+      const dx = e.clientX - lastPointerX; const dy = e.clientY - lastPointerY;
+      lastPointerX = e.clientX; lastPointerY = e.clientY; applyLookDelta(dx, dy);
     });
 
     function clampToWorld(pos) {
-      pos.x = THREE.MathUtils.clamp(pos.x, -HALF_WORLD + 3, HALF_WORLD - 3);
-      pos.z = THREE.MathUtils.clamp(pos.z, -HALF_WORLD + 3, HALF_WORLD - 3);
+      pos.x = THREE.MathUtils.clamp(pos.x, -HALF_WORLD + 12, HALF_WORLD - 12);
+      pos.z = THREE.MathUtils.clamp(pos.z, -HALF_WORLD + 12, HALF_WORLD - 12);
     }
 
     function pointHitsCollider(x, z, radius) {
       for (const c of colliders) {
-        const overlapX = Math.abs(x - c.x) < c.halfX + radius;
-        const overlapZ = Math.abs(z - c.z) < c.halfZ + radius;
-        if (overlapX && overlapZ) return c;
+        if (Math.abs(x - c.x) < c.halfX + radius && Math.abs(z - c.z) < c.halfZ + radius) return c;
       }
       return null;
     }
 
     function tryMoveObject(object, delta, radius, damageOnHit = 0) {
-      const oldX = object.position.x;
-      const oldZ = object.position.z;
-      let hit = null;
-
-      object.position.x += delta.x;
-      clampToWorld(object.position);
-      hit = pointHitsCollider(object.position.x, object.position.z, radius);
+      const oldX = object.position.x; const oldZ = object.position.z;
+      object.position.x += delta.x; clampToWorld(object.position);
+      let hit = pointHitsCollider(object.position.x, object.position.z, radius);
       if (hit) object.position.x = oldX;
-
-      object.position.z += delta.z;
-      clampToWorld(object.position);
+      object.position.z += delta.z; clampToWorld(object.position);
       const hitZ = pointHitsCollider(object.position.x, object.position.z, radius);
       if (hitZ) object.position.z = oldZ;
-
       const finalHit = hit || hitZ;
-      if (finalHit) registerCollision(damageOnHit);
+      if (finalHit) registerCollision(damageOnHit, finalHit.tag);
       return !finalHit;
     }
 
-    function registerCollision(damage = 0) {
+    function registerCollision(damage = 0, tag = 'structure') {
       const now = performance.now();
-      collisionText.textContent = 'Impact';
-      gameState.lastCollisionTime = now;
-      gameState.collisions += 1;
+      gameState.lastCollisionTime = now; gameState.collisions += 1;
       if (damage > 0 && now - (registerCollision.lastDamageAt || 0) > 550) {
         gameState.health = Math.max(0, gameState.health - damage);
         registerCollision.lastDamageAt = now;
-        showMessage(`Impact -${damage} health`);
+        showMessage(`Impact with ${tag} -${damage} health`);
       }
     }
 
     function nearestCar() {
-      let best = null;
-      let bestDist = Infinity;
+      let best = null; let bestDist = Infinity;
       for (const car of cars) {
         if (car.userData.occupied) continue;
         const d = player.position.distanceTo(car.position);
-        if (d < bestDist) {
-          best = car;
-          bestDist = d;
-        }
+        if (d < bestDist) { best = car; bestDist = d; }
       }
       return { car: best, dist: bestDist };
+    }
+
+    function nearestDoor() {
+      const pos = mode === 'walking' ? player.position : activeCar?.position;
+      if (!pos) return null;
+      let best = null; let bestDist = Infinity;
+      for (const entry of interiorDoors) {
+        const d = Math.hypot(pos.x - entry.x, pos.z - entry.z);
+        if (d < bestDist) { best = entry; bestDist = d; }
+      }
+      return best ? { ...best, dist: bestDist } : null;
+    }
+
+    function nearestMetro() {
+      const pos = mode === 'walking' ? player.position : activeCar?.position;
+      if (!pos) return null;
+      let best = null; let bestDist = Infinity;
+      for (const m of metroEntrances) {
+        const d = Math.hypot(pos.x - m.x, pos.z - m.z);
+        if (d < bestDist) { best = m; bestDist = d; }
+      }
+      return best ? { ...best, dist: bestDist } : null;
     }
 
     function toggleCarMode() {
       if (mode === 'walking') {
         const near = nearestCar();
-        if (near.car && near.dist < 5.5) {
-          activeCar = near.car;
-          activeCar.userData.occupied = true;
-          player.visible = false;
-          mode = 'driving';
-          yaw = activeCar.rotation.y;
+        if (near.car && near.dist < 6) {
+          activeCar = near.car; activeCar.userData.occupied = true; player.visible = false; mode = 'driving'; yaw = activeCar.rotation.y;
           showMessage('Entered car');
-        } else {
-          showMessage('Move closer to a car');
-        }
+        } else showMessage('Move closer to a car');
       } else {
-        const exitOffset = new THREE.Vector3(3.5, 0, 0).applyAxisAngle(new THREE.Vector3(0,1,0), activeCar.rotation.y);
+        const exitOffset = new THREE.Vector3(3.8, 0, 0).applyAxisAngle(new THREE.Vector3(0,1,0), activeCar.rotation.y);
         const candidate = activeCar.position.clone().add(exitOffset);
-        if (pointHitsCollider(candidate.x, candidate.z, 0.8)) {
-          showMessage('Exit blocked');
-          return;
-        }
-        player.position.copy(candidate);
-        clampToWorld(player.position);
-        player.visible = true;
-        activeCar.userData.occupied = false;
-        activeCar.userData.speed = 0;
-        activeCar = null;
-        mode = 'walking';
+        if (pointHitsCollider(candidate.x, candidate.z, 0.8)) return showMessage('Exit blocked');
+        player.position.copy(candidate); clampToWorld(player.position); player.visible = true;
+        activeCar.userData.occupied = false; activeCar.userData.speed = 0; activeCar = null; mode = 'walking';
         showMessage('Exited car');
       }
     }
 
     function updateWalking(dt) {
-      const speed = keys.ShiftLeft || keys.ShiftRight ? 10 : 5.2;
+      const speed = keys.ShiftLeft || keys.ShiftRight ? 14 : 7.2;
       const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
       const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
       const move = new THREE.Vector3();
-      if (keys.KeyW) move.add(forward);
-      if (keys.KeyS) move.sub(forward);
-      if (keys.KeyD) move.add(right);
-      if (keys.KeyA) move.sub(right);
+      if (keys.KeyW) move.add(forward); if (keys.KeyS) move.sub(forward); if (keys.KeyD) move.add(right); if (keys.KeyA) move.sub(right);
       if (move.lengthSq() > 0) {
         move.normalize();
-        const delta = move.clone().multiplyScalar(speed * dt);
-        const moved = tryMoveObject(player, delta, 0.75, 0);
-        if (moved) {
-          player.rotation.y = Math.atan2(move.x, move.z);
-          body.position.y = 1.15 + Math.sin(performance.now() * 0.014) * 0.05;
-        }
+        const moved = tryMoveObject(player, move.clone().multiplyScalar(speed * dt), 0.75, 0);
+        if (moved) { player.rotation.y = Math.atan2(move.x, move.z); body.position.y = 1.15 + Math.sin(performance.now() * 0.014) * 0.05; }
         playerVelocity.copy(move).multiplyScalar(moved ? speed : 0);
-      } else {
-        playerVelocity.multiplyScalar(0.82);
-        body.position.y = THREE.MathUtils.lerp(body.position.y, 1.15, 0.12);
-      }
+      } else { playerVelocity.multiplyScalar(0.82); body.position.y = THREE.MathUtils.lerp(body.position.y, 1.15, 0.12); }
     }
 
     function updateDriving(dt) {
-      const car = activeCar;
-      if (!car) return;
-      const boost = keys.ShiftLeft || keys.ShiftRight ? 1.55 : 1;
-      const accel = 22 * boost;
-      const reverseAccel = 12;
-      const brake = 34;
-      const maxSpeed = 36 * boost;
-      const maxReverse = -13;
-
+      const car = activeCar; if (!car) return;
+      const boost = keys.ShiftLeft || keys.ShiftRight ? 1.65 : 1;
+      const accel = 28 * boost; const reverseAccel = 14; const brake = 42; const maxSpeed = 58 * boost; const maxReverse = -17;
       if (keys.KeyW) car.userData.speed += accel * dt;
-      if (keys.KeyS) {
-        if (car.userData.speed > 0.5) car.userData.speed -= brake * dt;
-        else car.userData.speed -= reverseAccel * dt;
-      }
-      if (!keys.KeyW && !keys.KeyS) car.userData.speed *= Math.pow(0.08, dt);
-      else car.userData.speed *= Math.pow(0.35, dt);
-
+      if (keys.KeyS) { if (car.userData.speed > 0.5) car.userData.speed -= brake * dt; else car.userData.speed -= reverseAccel * dt; }
+      if (!keys.KeyW && !keys.KeyS) car.userData.speed *= Math.pow(0.08, dt); else car.userData.speed *= Math.pow(0.42, dt);
       car.userData.speed = THREE.MathUtils.clamp(car.userData.speed, maxReverse, maxSpeed);
-
       const steerTarget = (keys.KeyA ? 1 : 0) + (keys.KeyD ? -1 : 0);
       car.userData.steering = THREE.MathUtils.lerp(car.userData.steering, steerTarget, 1 - Math.pow(0.005, dt));
-      const speedFactor = THREE.MathUtils.clamp(Math.abs(car.userData.speed) / 18, 0.18, 1);
-      car.rotation.y += car.userData.steering * 2.45 * speedFactor * dt * Math.sign(car.userData.speed || 1);
-
+      const speedFactor = THREE.MathUtils.clamp(Math.abs(car.userData.speed) / 24, 0.14, 1);
+      car.rotation.y += car.userData.steering * 2.25 * speedFactor * dt * Math.sign(car.userData.speed || 1);
       const forward = new THREE.Vector3(Math.sin(car.rotation.y), 0, Math.cos(car.rotation.y));
-      const delta = forward.multiplyScalar(car.userData.speed * dt);
-      const moved = tryMoveObject(car, delta, 2.4, Math.abs(car.userData.speed) > 12 ? 3 : 1);
-      if (!moved) car.userData.speed *= -0.22;
-
+      const moved = tryMoveObject(car, forward.multiplyScalar(car.userData.speed * dt), 2.55, Math.abs(car.userData.speed) > 22 ? 3 : 1);
+      if (!moved) car.userData.speed *= -0.2;
       yaw = THREE.MathUtils.lerp(yaw, car.rotation.y, 0.08);
     }
 
+    function currentDistrict() {
+      const pos = mode === 'walking' ? player.position : activeCar?.position;
+      if (!pos) return 'Unknown';
+      const d = districts.find(r => Math.abs(pos.x - r.x) <= r.halfX && Math.abs(pos.z - r.z) <= r.halfZ);
+      return d ? d.name : 'Waterfront / Crossing';
+    }
+
     function updateCamera(dt) {
-      let target;
-      let distance;
-      let height;
-      if (mode === 'walking') {
-        target = player.position.clone().add(new THREE.Vector3(0, 1.4, 0));
-        distance = 8;
-        height = 4;
-      } else {
-        target = activeCar.position.clone().add(new THREE.Vector3(0, 1.2, 0));
-        distance = 12 + Math.abs(activeCar.userData.speed) * 0.18;
-        height = 5.2;
+      const targetObj = mode === 'walking' ? player : activeCar;
+      if (!targetObj) return;
+      if (overviewCamera) {
+        const desired = targetObj.position.clone().add(new THREE.Vector3(0, 430, 18));
+        camera.position.lerp(desired, 1 - Math.pow(0.002, dt));
+        camera.lookAt(targetObj.position);
+        return;
       }
-      const camOffset = new THREE.Vector3(
-        -Math.sin(yaw) * distance,
-        height + Math.sin(pitch) * 4,
-        -Math.cos(yaw) * distance
-      );
-      const desired = target.clone().add(camOffset);
-      camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
-      camera.lookAt(target);
+      let target, distance, height;
+      if (mode === 'walking') { target = player.position.clone().add(new THREE.Vector3(0, 1.4, 0)); distance = 10; height = 4.7; }
+      else { target = activeCar.position.clone().add(new THREE.Vector3(0, 1.2, 0)); distance = 16 + Math.abs(activeCar.userData.speed) * 0.18; height = 6.2; }
+      const camOffset = new THREE.Vector3(-Math.sin(yaw) * distance, height + Math.sin(pitch) * 5, -Math.cos(yaw) * distance);
+      camera.position.lerp(target.clone().add(camOffset), 1 - Math.pow(0.001, dt)); camera.lookAt(target);
     }
 
     function updateHUD() {
       modeText.textContent = mode === 'walking' ? 'Walking' : 'Driving';
+      districtText.textContent = currentDistrict();
       const speed = mode === 'walking' ? playerVelocity.length() : Math.abs(activeCar?.userData.speed || 0);
       speedText.textContent = speed.toFixed(1);
-      healthText.textContent = Math.round(gameState.health);
-      healthBar.style.width = `${gameState.health}%`;
-      moneyText.textContent = gameState.money;
-      wantedText.textContent = '★'.repeat(gameState.wanted) + '☆'.repeat(5 - gameState.wanted);
-      if (performance.now() - gameState.lastCollisionTime > 650) collisionText.textContent = 'Clear';
+      healthText.textContent = Math.round(gameState.health); healthBar.style.width = `${gameState.health}%`;
+      moneyText.textContent = gameState.money; wantedText.textContent = '★'.repeat(gameState.wanted) + '☆'.repeat(5 - gameState.wanted);
       if (mode === 'walking') {
-        const near = nearestCar();
-        carText.textContent = near.car ? `${near.dist.toFixed(1)}m ${near.dist < 5.5 ? '(Press E)' : ''}` : 'None';
-      } else {
-        carText.textContent = 'Inside vehicle';
-      }
+        const near = nearestCar(); carText.textContent = near.car ? `${near.dist.toFixed(1)}m ${near.dist < 6 ? '(Press E)' : ''}` : 'None';
+      } else carText.textContent = 'Inside vehicle';
+      const door = nearestDoor(); const metro = nearestMetro();
+      if (door && door.dist < 8) nearbyText.textContent = `Enterable building placeholder: ${door.district}`;
+      else if (metro && metro.dist < 18) nearbyText.textContent = `Metro entrance: ${metro.name}`;
+      else nearbyText.textContent = gameState.lastCollisionTime && performance.now() - gameState.lastCollisionTime < 650 ? 'Impact' : 'City grid';
       if (!pointerLocked && !pointerLockAvailable) lookText.textContent = 'Drag fallback';
     }
 
-    function addNeonSigns() {
-      const signMat = new THREE.MeshStandardMaterial({ color: 0x00ffaa, emissive: 0x00ffaa, emissiveIntensity: 1.2 });
-      for (let i = 0; i < 18; i++) {
-        const x = (Math.random() - 0.5) * 230;
-        const z = (Math.random() - 0.5) * 230;
-        const h = 3 + Math.random() * 18;
-        addBox(3.5, 0.18, 1, x, h, z, signMat, false, false);
-      }
-    }
-    addNeonSigns();
-
     function worldToMap(x, z) {
       const size = miniMap.width;
-      return {
-        x: ((x + HALF_WORLD) / WORLD_SIZE) * size,
-        y: ((z + HALF_WORLD) / WORLD_SIZE) * size
-      };
+      return { x: ((x + HALF_WORLD) / WORLD_SIZE) * size, y: ((z + HALF_WORLD) / WORLD_SIZE) * size };
     }
 
     function drawTriangle(ctx, x, y, angle, size, color) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(-angle);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(0, -size);
-      ctx.lineTo(size * 0.65, size);
-      ctx.lineTo(-size * 0.65, size);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+      ctx.save(); ctx.translate(x, y); ctx.rotate(-angle); ctx.fillStyle = color;
+      ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size * 0.65, size); ctx.lineTo(-size * 0.65, size); ctx.closePath(); ctx.fill(); ctx.restore();
     }
 
     function updateMiniMap() {
-      const w = miniMap.width;
-      const h = miniMap.height;
-      miniCtx.clearRect(0, 0, w, h);
-      miniCtx.fillStyle = 'rgba(4, 12, 16, 0.94)';
-      miniCtx.fillRect(0, 0, w, h);
-
-      miniCtx.strokeStyle = 'rgba(255,255,255,0.14)';
-      miniCtx.lineWidth = 4;
-      for (let i = -4; i <= 4; i++) {
-        const p1 = worldToMap(-HALF_WORLD, i * 52);
-        const p2 = worldToMap(HALF_WORLD, i * 52);
-        miniCtx.beginPath(); miniCtx.moveTo(p1.x, p1.y); miniCtx.lineTo(p2.x, p2.y); miniCtx.stroke();
-        const p3 = worldToMap(i * 52, -HALF_WORLD);
-        const p4 = worldToMap(i * 52, HALF_WORLD);
-        miniCtx.beginPath(); miniCtx.moveTo(p3.x, p3.y); miniCtx.lineTo(p4.x, p4.y); miniCtx.stroke();
-      }
-
-      miniCtx.fillStyle = 'rgba(0,255,170,0.18)';
-      for (const c of colliders) {
-        const p = worldToMap(c.x - c.halfX, c.z - c.halfZ);
-        const p2 = worldToMap(c.x + c.halfX, c.z + c.halfZ);
+      const w = miniMap.width; const h = miniMap.height;
+      miniCtx.clearRect(0, 0, w, h); miniCtx.fillStyle = 'rgba(3, 15, 22, 0.96)'; miniCtx.fillRect(0, 0, w, h);
+      miniCtx.fillStyle = 'rgba(22, 60, 38, 0.95)';
+      for (const d of districts) { const p = worldToMap(d.x - d.halfX, d.z - d.halfZ); const p2 = worldToMap(d.x + d.halfX, d.z + d.halfZ); miniCtx.fillRect(p.x, p.y, p2.x - p.x, p2.y - p.y); }
+      for (const r of roads) {
+        const p = worldToMap(r.x - r.w/2, r.z - r.d/2); const p2 = worldToMap(r.x + r.w/2, r.z + r.d/2);
+        miniCtx.fillStyle = r.kind === 'highway' ? 'rgba(255,238,85,0.45)' : 'rgba(255,255,255,0.2)';
         miniCtx.fillRect(p.x, p.y, p2.x - p.x, p2.y - p.y);
       }
-
-      for (const car of cars) {
-        const p = worldToMap(car.position.x, car.position.z);
-        drawTriangle(miniCtx, p.x, p.y, car.rotation.y, car === activeCar ? 6 : 4, car === activeCar ? '#ffee55' : '#ff5577');
-      }
-
-      const target = mode === 'walking' ? player : activeCar;
-      const p = worldToMap(target.position.x, target.position.z);
-      drawTriangle(miniCtx, p.x, p.y, mode === 'walking' ? player.rotation.y : activeCar.rotation.y, 6, '#00ffaa');
-
-      miniCtx.strokeStyle = 'rgba(0,255,170,0.5)';
-      miniCtx.lineWidth = 2;
-      miniCtx.strokeRect(1, 1, w - 2, h - 2);
+      miniCtx.fillStyle = 'rgba(0,255,170,0.22)';
+      for (const m of metroEntrances) { const p = worldToMap(m.x, m.z); miniCtx.beginPath(); miniCtx.arc(p.x, p.y, 3.2, 0, Math.PI*2); miniCtx.fill(); }
+      for (const car of cars) { const p = worldToMap(car.position.x, car.position.z); drawTriangle(miniCtx, p.x, p.y, car.rotation.y, car === activeCar ? 5 : 3.5, car === activeCar ? '#ffee55' : '#ff5577'); }
+      const target = mode === 'walking' ? player : activeCar; const p = worldToMap(target.position.x, target.position.z);
+      drawTriangle(miniCtx, p.x, p.y, mode === 'walking' ? player.rotation.y : activeCar.rotation.y, 5.5, '#00ffaa');
+      miniCtx.strokeStyle = 'rgba(0,255,170,0.5)'; miniCtx.lineWidth = 2; miniCtx.strokeRect(1, 1, w-2, h-2);
     }
 
     function runSelfTests() {
-      const tests = [];
-      const assert = (name, condition) => tests.push({ name, pass: Boolean(condition) });
-
+      const tests = []; const assert = (name, condition) => tests.push({ name, pass: Boolean(condition) });
       assert('THREE loaded', typeof THREE.Scene === 'function');
       assert('renderer canvas created', renderer.domElement instanceof HTMLCanvasElement);
-      assert('player exists in scene', scene.children.includes(player));
-      assert('five cars created', cars.length === 5);
-      assert('buildings created', buildings.length > 20);
-      assert('colliders created', colliders.length === buildings.length);
-      assert('nearestCar returns object', typeof nearestCar() === 'object' && 'dist' in nearestCar());
-      assert('collision function exists', typeof pointHitsCollider === 'function');
-      assert('movement guard exists', typeof tryMoveObject === 'function');
+      assert('large world size active', WORLD_SIZE >= 2000);
+      assert('districts created', districts.length >= 5);
+      assert('bridges created', bridges.length >= 2);
+      assert('highways created', highways.length >= 3);
+      assert('metro entrances created', metroEntrances.length >= 5);
+      assert('enterable placeholders created', interiorDoors.length > 10);
+      assert('buildings created', buildings.length > 50);
+      assert('colliders created', colliders.length >= buildings.length);
+      assert('cars created', cars.length >= 8);
       assert('minimap canvas exists', miniMap instanceof HTMLCanvasElement);
       assert('pointer lock guarded', typeof tryPointerLock === 'function');
       assert('drag look fallback available', typeof applyLookDelta === 'function');
       assert('mode starts walking', mode === 'walking');
-
-      const failed = tests.filter(t => !t.pass);
-      console.table(tests);
+      const failed = tests.filter(t => !t.pass); console.table(tests);
       testBadge.textContent = failed.length ? `Self-tests failed: ${failed.length}` : `Self-tests passed: ${tests.length}`;
-      testBadge.style.color = failed.length ? '#ffb3b3' : '#baffea';
-      return { total: tests.length, failed };
+      testBadge.style.color = failed.length ? '#ffb3b3' : '#baffea'; return { total: tests.length, failed };
     }
 
     function animate() {
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
-      if (mode === 'walking') updateWalking(dt);
-      else updateDriving(dt);
-      updateCamera(dt);
-      updateHUD();
-      updateMiniMap();
-      renderer.render(scene, camera);
+      if (mode === 'walking') updateWalking(dt); else updateDriving(dt);
+      updateCamera(dt); updateHUD(); updateMiniMap(); renderer.render(scene, camera);
     }
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    window.__AURORA_STAGE2_TESTS__ = runSelfTests;
+    window.__AURORA_STAGE3_TESTS__ = runSelfTests;
     runSelfTests();
-    showMessage('Stage 2.1 loaded — collisions, minimap, handling upgraded');
+    showMessage('Stage 3.0 loaded — expanded city shell, bridges, highway, metro, island');
     animate();
   </script>
 </body>
