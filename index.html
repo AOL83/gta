@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurora Stage 2 — 3D City Prototype</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #05070a;
+      font-family: Arial, Helvetica, sans-serif;
+      color: white;
+    }
+    canvas { display: block; }
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 10;
+    }
+    .panel {
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(0, 255, 170, 0.35);
+      box-shadow: 0 0 18px rgba(0, 255, 170, 0.18);
+      border-radius: 14px;
+      padding: 12px 14px;
+      backdrop-filter: blur(8px);
+      max-width: 360px;
+    }
+    .title {
+      font-size: 15px;
+      color: #00ffaa;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .line {
+      font-size: 13px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+    #crosshair {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0,255,170,0.8);
+      z-index: 9;
+      pointer-events: none;
+    }
+    #message {
+      position: fixed;
+      left: 50%;
+      bottom: 36px;
+      transform: translateX(-50%);
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 11;
+      pointer-events: none;
+    }
+    #message.show { opacity: 1; }
+    @media (max-width: 700px) {
+      #hud { padding: 10px; flex-direction: column; gap: 10px; }
+      .panel { max-width: 100%; width: 100%; }
+      .line { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div class="panel">
+      <div class="title">Aurora Stage 2</div>
+      <div class="line"><strong>Mode:</strong> <span id="modeText">Walking</span></div>
+      <div class="line"><strong>Speed:</strong> <span id="speedText">0</span></div>
+      <div class="line"><strong>Nearest car:</strong> <span id="carText">None</span></div>
+    </div>
+    <div class="panel">
+      <div class="title">Controls</div>
+      <div class="line">WASD = move / drive</div>
+      <div class="line">Mouse = look around</div>
+      <div class="line">E = enter / exit car</div>
+      <div class="line">Shift = sprint / boost</div>
+      <div class="line">Click screen once to lock mouse</div>
+    </div>
+  </div>
+  <div id="crosshair"></div>
+  <div id="message">Ready</div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x071019);
+    scene.fog = new THREE.Fog(0x071019, 70, 260);
+
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const modeText = document.getElementById('modeText');
+    const speedText = document.getElementById('speedText');
+    const carText = document.getElementById('carText');
+    const message = document.getElementById('message');
+
+    function showMessage(text) {
+      message.textContent = text;
+      message.classList.add('show');
+      clearTimeout(showMessage.timer);
+      showMessage.timer = setTimeout(() => message.classList.remove('show'), 1500);
+    }
+
+    const hemi = new THREE.HemisphereLight(0x9fdcff, 0x202020, 1.25);
+    scene.add(hemi);
+
+    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+    sun.position.set(60, 100, 30);
+    sun.castShadow = true;
+    sun.shadow.camera.left = -140;
+    sun.shadow.camera.right = 140;
+    sun.shadow.camera.top = 140;
+    sun.shadow.camera.bottom = -140;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+    scene.add(sun);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(500, 500),
+      new THREE.MeshStandardMaterial({ color: 0x162025, roughness: 0.95 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const roadMat = new THREE.MeshStandardMaterial({ color: 0x11151a, roughness: 0.9 });
+    const lineMat = new THREE.MeshStandardMaterial({ color: 0xffe066, emissive: 0x665000, emissiveIntensity: 0.25 });
+    const pavementMat = new THREE.MeshStandardMaterial({ color: 0x2d343a, roughness: 0.9 });
+
+    function addBox(w, h, d, x, y, z, mat, cast = true, receive = true) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = cast;
+      mesh.receiveShadow = receive;
+      scene.add(mesh);
+      return mesh;
+    }
+
+    for (let i = -4; i <= 4; i++) {
+      addBox(500, 0.08, 12, 0, 0.04, i * 52, roadMat, false, true);
+      addBox(12, 0.08, 500, i * 52, 0.045, 0, roadMat, false, true);
+      addBox(500, 0.1, 0.3, 0, 0.1, i * 52, lineMat, false, false);
+      addBox(0.3, 0.1, 500, i * 52, 0.11, 0, lineMat, false, false);
+    }
+
+    const buildingMats = [
+      new THREE.MeshStandardMaterial({ color: 0x253241, roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ color: 0x3a2f3f, roughness: 0.85 }),
+      new THREE.MeshStandardMaterial({ color: 0x203b35, roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ color: 0x3d3b32, roughness: 0.9 })
+    ];
+
+    for (let gx = -4; gx <= 4; gx++) {
+      for (let gz = -4; gz <= 4; gz++) {
+        if (Math.abs(gx) % 1 === 0 && Math.abs(gz) % 1 === 0) {
+          const cx = gx * 52 + 24;
+          const cz = gz * 52 + 24;
+          if (Math.abs(cx) < 18 && Math.abs(cz) < 18) continue;
+          addBox(34, 0.25, 34, cx, 0.13, cz, pavementMat, false, true);
+          const h = 10 + Math.random() * 34;
+          const b = addBox(18 + Math.random() * 11, h, 18 + Math.random() * 11, cx, h / 2 + 0.25, cz, buildingMats[Math.floor(Math.random() * buildingMats.length)]);
+          b.userData.type = 'building';
+        }
+      }
+    }
+
+    const player = new THREE.Group();
+    const body = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.55, 1.05, 6, 12),
+      new THREE.MeshStandardMaterial({ color: 0x00ffaa, emissive: 0x003322, emissiveIntensity: 0.4 })
+    );
+    body.position.y = 1.15;
+    body.castShadow = true;
+    player.add(body);
+    player.position.set(0, 0, 8);
+    scene.add(player);
+
+    function createCar(x, z, color) {
+      const car = new THREE.Group();
+      const mainMat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.2 });
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0x07090b, roughness: 0.6 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.9, 6), mainMat);
+      body.position.y = 0.75;
+      body.castShadow = true;
+      car.add(body);
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 2.4), darkMat);
+      cabin.position.set(0, 1.35, -0.45);
+      cabin.castShadow = true;
+      car.add(cabin);
+      const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.38, 18);
+      const wheelPositions = [[-1.85,0.45,2], [1.85,0.45,2], [-1.85,0.45,-2], [1.85,0.45,-2]];
+      wheelPositions.forEach(([wx, wy, wz]) => {
+        const wheel = new THREE.Mesh(wheelGeo, darkMat);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(wx, wy, wz);
+        wheel.castShadow = true;
+        car.add(wheel);
+      });
+      car.position.set(x, 0, z);
+      car.rotation.y = Math.random() * Math.PI * 2;
+      car.userData = { speed: 0, turn: 0, occupied: false };
+      scene.add(car);
+      return car;
+    }
+
+    const cars = [
+      createCar(10, 0, 0xff3355),
+      createCar(-40, -12, 0x3388ff),
+      createCar(64, 58, 0xffcc33),
+      createCar(-88, 48, 0xeeeeee),
+      createCar(20, -78, 0x9b5cff)
+    ];
+
+    const keys = {};
+    let pointerLocked = false;
+    let yaw = 0;
+    let pitch = -0.15;
+    let mode = 'walking';
+    let activeCar = null;
+    let playerVelocity = new THREE.Vector3();
+    const clock = new THREE.Clock();
+
+    document.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      if (e.code === 'KeyE') toggleCarMode();
+    });
+    document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    document.body.addEventListener('click', () => {
+      if (!pointerLocked) document.body.requestPointerLock();
+    });
+    document.addEventListener('pointerlockchange', () => {
+      pointerLocked = document.pointerLockElement === document.body;
+      showMessage(pointerLocked ? 'Mouse locked — control camera active' : 'Mouse unlocked');
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!pointerLocked) return;
+      yaw -= e.movementX * 0.0022;
+      pitch -= e.movementY * 0.0018;
+      pitch = Math.max(-0.85, Math.min(0.35, pitch));
+    });
+
+    function nearestCar() {
+      let best = null;
+      let bestDist = Infinity;
+      for (const car of cars) {
+        if (car.userData.occupied) continue;
+        const d = player.position.distanceTo(car.position);
+        if (d < bestDist) {
+          best = car;
+          bestDist = d;
+        }
+      }
+      return { car: best, dist: bestDist };
+    }
+
+    function toggleCarMode() {
+      if (mode === 'walking') {
+        const near = nearestCar();
+        if (near.car && near.dist < 5.5) {
+          activeCar = near.car;
+          activeCar.userData.occupied = true;
+          player.visible = false;
+          mode = 'driving';
+          yaw = activeCar.rotation.y;
+          showMessage('Entered car');
+        } else {
+          showMessage('Move closer to a car');
+        }
+      } else {
+        const exitOffset = new THREE.Vector3(3.5, 0, 0).applyAxisAngle(new THREE.Vector3(0,1,0), activeCar.rotation.y);
+        player.position.copy(activeCar.position).add(exitOffset);
+        player.visible = true;
+        activeCar.userData.occupied = false;
+        activeCar.userData.speed = 0;
+        activeCar = null;
+        mode = 'walking';
+        showMessage('Exited car');
+      }
+    }
+
+    function updateWalking(dt) {
+      const speed = keys.ShiftLeft || keys.ShiftRight ? 10 : 5.2;
+      const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+      const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+      const move = new THREE.Vector3();
+      if (keys.KeyW) move.add(forward);
+      if (keys.KeyS) move.sub(forward);
+      if (keys.KeyD) move.add(right);
+      if (keys.KeyA) move.sub(right);
+      if (move.lengthSq() > 0) {
+        move.normalize();
+        player.position.addScaledVector(move, speed * dt);
+        player.rotation.y = Math.atan2(move.x, move.z);
+        playerVelocity.copy(move).multiplyScalar(speed);
+      } else {
+        playerVelocity.multiplyScalar(0.82);
+      }
+    }
+
+    function updateDriving(dt) {
+      const car = activeCar;
+      const boost = keys.ShiftLeft || keys.ShiftRight ? 1.7 : 1;
+      const accel = 23 * boost;
+      const brake = 30;
+      const maxSpeed = 34 * boost;
+      if (keys.KeyW) car.userData.speed += accel * dt;
+      if (keys.KeyS) car.userData.speed -= brake * dt;
+      car.userData.speed *= 0.985;
+      car.userData.speed = Math.max(-12, Math.min(maxSpeed, car.userData.speed));
+      const turnPower = THREE.MathUtils.clamp(Math.abs(car.userData.speed) / 12, 0.25, 1);
+      if (keys.KeyA) car.rotation.y += 2.1 * turnPower * dt * Math.sign(car.userData.speed || 1);
+      if (keys.KeyD) car.rotation.y -= 2.1 * turnPower * dt * Math.sign(car.userData.speed || 1);
+      const forward = new THREE.Vector3(Math.sin(car.rotation.y), 0, Math.cos(car.rotation.y));
+      car.position.addScaledVector(forward, car.userData.speed * dt);
+      yaw = THREE.MathUtils.lerp(yaw, car.rotation.y, 0.08);
+    }
+
+    function updateCamera(dt) {
+      let target;
+      let distance;
+      let height;
+      if (mode === 'walking') {
+        target = player.position.clone().add(new THREE.Vector3(0, 1.4, 0));
+        distance = 8;
+        height = 4;
+      } else {
+        target = activeCar.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+        distance = 12 + Math.abs(activeCar.userData.speed) * 0.18;
+        height = 5.2;
+      }
+      const camOffset = new THREE.Vector3(
+        -Math.sin(yaw) * distance,
+        height + Math.sin(pitch) * 4,
+        -Math.cos(yaw) * distance
+      );
+      const desired = target.clone().add(camOffset);
+      camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
+      camera.lookAt(target);
+    }
+
+    function updateHUD() {
+      modeText.textContent = mode === 'walking' ? 'Walking' : 'Driving';
+      const speed = mode === 'walking' ? playerVelocity.length() : Math.abs(activeCar.userData.speed);
+      speedText.textContent = speed.toFixed(1);
+      if (mode === 'walking') {
+        const near = nearestCar();
+        carText.textContent = near.car ? `${near.dist.toFixed(1)}m ${near.dist < 5.5 ? '(Press E)' : ''}` : 'None';
+      } else {
+        carText.textContent = 'Inside vehicle';
+      }
+    }
+
+    function addNeonSigns() {
+      const signMat = new THREE.MeshStandardMaterial({ color: 0x00ffaa, emissive: 0x00ffaa, emissiveIntensity: 1.2 });
+      for (let i = 0; i < 18; i++) {
+        const x = (Math.random() - 0.5) * 230;
+        const z = (Math.random() - 0.5) * 230;
+        const h = 3 + Math.random() * 18;
+        addBox(3.5, 0.18, 1, x, h, z, signMat, false, false);
+      }
+    }
+    addNeonSigns();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      if (mode === 'walking') updateWalking(dt);
+      else updateDriving(dt);
+      updateCamera(dt);
+      updateHUD();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    showMessage('Stage 2 prototype loaded');
+    animate();
+  </script>
+</body>
+</html>
