@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Aurora MetaComputer Test Window</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Aurora MetaComputer Protocol Launcher</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#030711;color:#eaf7ff;font-family:Arial,Helvetica,sans-serif}
@@ -20,13 +20,11 @@ button{border:1px solid rgba(0,255,200,.36);background:rgba(0,255,200,.08);color
 button:hover{background:rgba(0,255,200,.18)}
 button.primary{border-color:#d4af37;color:#ffd66e;background:rgba(212,175,55,.13)}
 input,textarea{width:100%;background:#06101a;color:#eaf7ff;border:1px solid rgba(0,255,200,.25);border-radius:10px;padding:10px}
-textarea{height:130px}
+textarea{height:180px}
 .card{border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;margin:8px 0;background:rgba(255,255,255,.045)}
 .log{height:330px;overflow:auto;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap}
-.led{display:inline-block;width:11px;height:11px;border-radius:50%;background:#ff4b67;box-shadow:0 0 8px #ff4b67;margin-right:7px}
-.led.on{background:#00ffc8;box-shadow:0 0 8px #00ffc8}
 #testWindow{height:560px;position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(212,175,55,.3);background:linear-gradient(90deg,rgba(0,0,0,.58),rgba(0,0,0,.12),rgba(0,0,0,.64)),radial-gradient(circle at 48% 54%,rgba(0,255,200,.16),transparent 20%),linear-gradient(180deg,#0b1728,#05070c 70%)}
-#testWindow:before{content:"LIVE TEST WINDOW";position:absolute;top:16px;left:16px;padding:8px 12px;border:1px solid rgba(0,255,200,.25);border-radius:999px;background:rgba(0,0,0,.5);font-size:12px;color:#bff}
+#testWindow:before{content:"AURORA HTML CONTROL NEST";position:absolute;top:16px;left:16px;padding:8px 12px;border:1px solid rgba(0,255,200,.25);border-radius:999px;background:rgba(0,0,0,.5);font-size:12px;color:#bff}
 .floor{position:absolute;left:8%;right:8%;bottom:-8%;height:56%;background:linear-gradient(90deg,#111923,#080d13);transform:rotateX(64deg);border:1px solid rgba(0,255,200,.15)}
 .room{position:absolute;left:12%;top:12%;width:40%;height:54%;border:1px solid rgba(212,175,55,.28);background:linear-gradient(135deg,rgba(60,80,110,.24),rgba(10,15,26,.72));box-shadow:inset 0 0 70px rgba(0,0,0,.55)}
 .terminal{position:absolute;left:16%;top:28%;width:16%;height:18%;background:#07101b;border:1px solid #00ffc8;box-shadow:0 0 22px rgba(0,255,200,.34)}
@@ -34,88 +32,204 @@ textarea{height:130px}
 .car{position:absolute;right:24%;bottom:28%;width:110px;height:46px;background:linear-gradient(135deg,#164c74,#07101b);border:1px solid #60a5fa;box-shadow:0 0 20px rgba(96,165,250,.25);border-radius:10px}
 .portal{position:absolute;right:10%;top:18%;width:110px;height:160px;border-radius:50%;border:5px solid #00ffc8;box-shadow:0 0 35px rgba(0,255,200,.6)}
 .avatar{position:absolute;left:46%;bottom:28%;width:32px;height:74px;background:linear-gradient(#00ffc8,#0b6b58);border-radius:16px 16px 8px 8px;box-shadow:0 0 18px rgba(0,255,200,.6)}
-.testStep{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}.pass{color:#00ffc8}.fail{color:#ff4b67}.wait{color:#ffd66e}
+.pass{color:#00ffc8}.wait{color:#ffd66e}.fail{color:#ff4b67}
 @media(max-width:1000px){main{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div id="app">
-<nav><div class="logo">⚡ Aurora MetaComputer Test Window</div><span class="small">Add Launcher → File Explorer → Run Epic → test results visible</span></nav>
+<nav>
+<div class="logo">⚡ Aurora MetaComputer Protocol Launcher</div>
+<span class="small">single index.html control nest</span>
+</nav>
+
 <main>
 <section class="panel">
 <div class="title">Launcher Control</div>
-<button class="primary" onclick="openFilePicker()">Add Launcher</button>
-<input id="filePicker" type="file" accept=".lnk,.url,.exe,.bat,.cmd,.ps1" multiple style="display:none">
-<div id="launcherCards"></div>
+<button class="primary" onclick="addLauncher()">Add Launcher</button>
+<input id="picker" type="file" accept=".lnk,.url,.exe,.bat,.cmd,.ps1" multiple style="display:none">
+<div id="launchers"></div>
 
-<div class="title" style="margin-top:16px">Bridge</div>
-<p><span id="bridgeLed" class="led"></span><span id="bridgeText">Not checked</span></p>
-<input id="bridgeUrl" value="http://127.0.0.1:8769">
-<button onclick="checkBridge()">Check Bridge</button>
-<button onclick="runSelectedEpic()">Run Epic Games</button>
+<div class="title" style="margin-top:16px">Main Actions</div>
+<button class="primary" onclick="runEpic()">Run Epic Games</button>
+<button class="primary" onclick="runUnreal()">Run Unreal Engine</button>
+<button onclick="copyPacket()">Copy Builder Dock Blueprint</button>
+
+<div class="title" style="margin-top:16px">Custom Protocol</div>
+<input id="protocol" value="aurora://launch?target=EpicGamesLauncher">
+<button onclick="runProtocol()">Run Protocol Link</button>
+
+<div class="card small">
+This HTML calls a registered protocol such as <b>aurora://</b>. Once the machine has that protocol registered, this index.html can hand off the launcher request from inside the Aurora console.
+</div>
 </section>
 
 <section class="panel">
 <div id="testWindow">
-<div class="floor"></div><div class="room"></div><div class="terminal"></div><div class="garage"></div><div class="car"></div><div class="portal"></div><div class="avatar"></div>
+<div class="floor"></div>
+<div class="room"></div>
+<div class="terminal"></div>
+<div class="garage"></div>
+<div class="car"></div>
+<div class="portal"></div>
+<div class="avatar"></div>
 </div>
-<div class="title" style="margin-top:12px">Test checklist</div>
-<div id="checklist"></div>
+<div class="title" style="margin-top:12px">Test Checklist</div>
+<div id="checks"></div>
 </section>
 
 <section class="panel">
 <div class="title">Runtime Log</div>
-<div id="log" class="log">Aurora test window loaded.</div>
-<div class="title" style="margin-top:14px">Builder Dock Packet</div>
-<textarea id="packetText"></textarea>
-<button onclick="copyPacket()">Copy Packet</button>
-<button onclick="downloadPacket()">Download Packet</button>
+<div id="log" class="log">Aurora HTML control nest loaded.</div>
+<div class="title" style="margin-top:14px">Builder Dock Zero Blueprint</div>
+<textarea id="packet"></textarea>
 </section>
 </main>
 </div>
-<script>
-let launchers=JSON.parse(localStorage.getItem("aurora_test_launchers")||"[]");
-let tests={page:true,file:false,bridge:false,run:false};
-const packet={project:"Aurora Builder Dock Zero",loadIn:"polished futuristic workbay first",zones:["spawn pad","Unreal builder terminal","AI Architect terminal","garage","outside greybox strip","enemy test pad","portal placeholder"],features:["Epic/Unreal launcher handoff","mission radar","vehicle test","NPC concierge","save station"]};
 
-function bridge(){return document.getElementById("bridgeUrl").value.replace(/\/$/,"")}
-function log(m){const el=document.getElementById("log");el.textContent+="\n"+new Date().toLocaleTimeString()+"  "+m;el.scrollTop=el.scrollHeight;renderChecklist()}
-function mark(k,v){tests[k]=v;renderChecklist()}
-function renderChecklist(){
-const labels={page:"HTML control nest loaded",file:"Launcher selected through File Explorer",bridge:"Local bridge online",run:"Run command sent to Epic launcher"};
-checklist.innerHTML=Object.keys(labels).map(k=>`<div class="testStep"><b class="${tests[k]?'pass':'wait'}">${tests[k]?'PASS':'WAIT'}</b><span>${labels[k]}</span></div>`).join("");
+<script>
+const state={launcherAdded:false,packetReady:true,protocolCalled:false};
+const launchers=JSON.parse(localStorage.getItem("aurora_protocol_launchers")||"[]");
+
+const builderPacket={
+project:"Aurora Builder Dock Zero",
+loadIn:"User loads directly into polished futuristic builder workbay",
+purpose:"Zero-point load-in position for building the reality outside the user node",
+dimensions_metres:{width:28,length:36,height:8},
+zones:[
+"Operator spawn pad",
+"AI Architect terminal",
+"Unreal Builder Bay",
+"Garage and vehicle lift",
+"Tool wall and workbench",
+"Deployment door",
+"Outside greybox test strip",
+"Enemy test pad",
+"Portal placeholder"
+],
+features:[
+"walking",
+"vehicle test",
+"NPC concierge",
+"enemy bot",
+"mission radar",
+"save station",
+"portal placeholder",
+"outside greybox boundary"
+],
+unreal_actions:[
+"Open or create AuroraBuilderDockZero project",
+"Create Builder_Dock_Zero level",
+"Build polished enclosed builder dock first",
+"Place player start at operator spawn pad",
+"Place AI Architect terminal",
+"Place Unreal Builder Bay wall terminal",
+"Place garage and vehicle lift",
+"Place deployment door to outside greybox test strip",
+"Place NPC concierge",
+"Place enemy bot test pad",
+"Place mission radar markers",
+"Save level",
+"Prepare play preview"
+]
+};
+
+function log(msg){
+const el=document.getElementById("log");
+el.textContent+="\n"+new Date().toLocaleTimeString()+"  "+msg;
+el.scrollTop=el.scrollHeight;
+renderChecks();
 }
-function openFilePicker(){document.getElementById("filePicker").click()}
-filePicker.addEventListener("change",e=>{
-for(const f of [...e.target.files]){
- if(!launchers.some(x=>x.name===f.name))launchers.push({name:f.name,added:new Date().toLocaleString()});
- log("Launcher added: "+f.name);
- mark("file",true);
+
+function addLauncher(){
+document.getElementById("picker").click();
 }
-localStorage.setItem("aurora_test_launchers",JSON.stringify(launchers));renderLaunchers();e.target.value="";
+
+document.getElementById("picker").addEventListener("change",e=>{
+for(const file of [...e.target.files]){
+if(!launchers.some(x=>x.name===file.name)){
+launchers.push({name:file.name,added:new Date().toLocaleString()});
+}
+}
+localStorage.setItem("aurora_protocol_launchers",JSON.stringify(launchers));
+state.launcherAdded=launchers.length>0;
+log("Launcher registered inside Aurora: "+launchers.map(x=>x.name).join(", "));
+renderLaunchers();
+e.target.value="";
 });
+
 function renderLaunchers(){
-launcherCards.innerHTML=launchers.length?launchers.map((x,i)=>`<div class="card"><b>${esc(x.name)}</b><div class="small">${esc(x.added)}</div><button class="primary" onclick="runLauncher(${i})">Run</button><button onclick="removeLauncher(${i})">Remove</button></div>`).join(""):"<div class='card small'>No launcher selected yet.</div>";
+const el=document.getElementById("launchers");
+el.innerHTML=launchers.length?launchers.map((x,i)=>`
+<div class="card">
+<b>${escapeHtml(x.name)}</b>
+<div class="small">Added: ${escapeHtml(x.added)}</div>
+<button onclick="runLauncher(${i})">Run Through Aurora Protocol</button>
+<button onclick="removeLauncher(${i})">Remove</button>
+</div>`).join(""):"<div class='card small'>No launcher added yet.</div>";
 }
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
-function removeLauncher(i){log("Removed: "+launchers[i].name);launchers.splice(i,1);localStorage.setItem("aurora_test_launchers",JSON.stringify(launchers));renderLaunchers();mark("file",launchers.length>0)}
-async function checkBridge(){
-try{const r=await fetch(bridge()+"/status",{cache:"no-store"});const j=await r.json();bridgeLed.classList.add("on");bridgeText.textContent="Bridge online";mark("bridge",true);log("Bridge online. Folder: "+j.launchersFolder)}
-catch(e){bridgeLed.classList.remove("on");bridgeText.textContent="Bridge offline";mark("bridge",false);log("Bridge offline: "+e.message)}
+
+function removeLauncher(i){
+launchers.splice(i,1);
+localStorage.setItem("aurora_protocol_launchers",JSON.stringify(launchers));
+state.launcherAdded=launchers.length>0;
+renderLaunchers();
+log("Launcher removed.");
 }
-async function runSelectedEpic(){
-const epic=launchers.find(x=>x.name.toLowerCase().includes("epic"))||launchers[0];
-if(!epic){log("No launcher selected. Press Add Launcher first.");return}
-await runByName(epic.name);
+
+function runLauncher(i){
+const name=launchers[i]?.name||"EpicGamesLauncher";
+const target=encodeURIComponent(name);
+const packet=encodeURIComponent(JSON.stringify(builderPacket));
+const url="aurora://launch?target="+target+"&blueprint="+packet;
+document.getElementById("protocol").value=url;
+openProtocol(url);
 }
-async function runLauncher(i){await runByName(launchers[i].name)}
-async function runByName(name){
-try{log("Run requested: "+name);const r=await fetch(bridge()+"/launch?name="+encodeURIComponent(name),{cache:"no-store"});const t=await r.text();log(t);mark("run",t.startsWith("OK"))}
-catch(e){log("Run failed: "+e.message);mark("run",false)}
+
+function runEpic(){
+const packet=encodeURIComponent(JSON.stringify(builderPacket));
+openProtocol("aurora://launch?target=EpicGamesLauncher&blueprint="+packet);
 }
-function copyPacket(){navigator.clipboard.writeText(JSON.stringify(packet,null,2));log("Packet copied.")}
-function downloadPacket(){const blob=new Blob([JSON.stringify(packet,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="builder_dock_zero_packet.json";a.click();URL.revokeObjectURL(a.href);log("Packet downloaded.")}
-packetText.value=JSON.stringify(packet,null,2);renderLaunchers();renderChecklist();checkBridge();
+
+function runUnreal(){
+const packet=encodeURIComponent(JSON.stringify(builderPacket));
+openProtocol("aurora://launch?target=UnrealEngine&blueprint="+packet);
+}
+
+function runProtocol(){
+openProtocol(document.getElementById("protocol").value.trim());
+}
+
+function openProtocol(url){
+if(!url){log("No protocol URL supplied.");return}
+state.protocolCalled=true;
+log("Calling protocol: "+url.slice(0,220)+(url.length>220?"...":""));
+window.location.href=url;
+setTimeout(()=>log("If nothing opened, aurora:// is not registered on this machine yet."),1200);
+}
+
+function copyPacket(){
+navigator.clipboard.writeText(JSON.stringify(builderPacket,null,2));
+log("Builder Dock Zero blueprint copied.");
+}
+
+function escapeHtml(s){
+return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+}
+
+function renderChecks(){
+document.getElementById("checks").innerHTML=`
+<div><b class="pass">PASS</b> HTML control nest loaded</div>
+<div><b class="${state.packetReady?"pass":"wait"}">${state.packetReady?"PASS":"WAIT"}</b> Builder Dock Zero blueprint embedded</div>
+<div><b class="${state.launcherAdded?"pass":"wait"}">${state.launcherAdded?"PASS":"WAIT"}</b> Launcher registered through Add Launcher</div>
+<div><b class="${state.protocolCalled?"pass":"wait"}">${state.protocolCalled?"PASS":"WAIT"}</b> Protocol launch command issued</div>
+`;
+}
+
+document.getElementById("packet").value=JSON.stringify(builderPacket,null,2);
+state.launcherAdded=launchers.length>0;
+renderLaunchers();
+renderChecks();
 </script>
 </body>
 </html>
