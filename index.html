@@ -1,375 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aurora Stage 3.1 — Twin Tower Interior Prototype</title>
-  <style>
-    * { box-sizing: border-box; }
-    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#05070a; font-family:Arial,Helvetica,sans-serif; color:white; user-select:none; touch-action:none; }
-    canvas { display:block; }
-    #hud { position:fixed; top:0; left:0; right:0; pointer-events:none; padding:14px; display:flex; justify-content:space-between; align-items:flex-start; z-index:10; gap:12px; }
-    .panel { background:rgba(0,0,0,.58); border:1px solid rgba(0,255,170,.35); box-shadow:0 0 18px rgba(0,255,170,.18); border-radius:14px; padding:12px 14px; backdrop-filter:blur(8px); max-width:430px; }
-    .title { font-size:15px; color:#00ffaa; font-weight:700; letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
-    .line { font-size:13px; opacity:.9; line-height:1.5; }
-    .barWrap { width:180px; height:9px; background:rgba(255,255,255,.14); border-radius:999px; overflow:hidden; margin:4px 0 8px; }
-    .barFill { height:100%; width:100%; background:linear-gradient(90deg,#00ffaa,#ffee55); border-radius:999px; }
-    #crosshair { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:8px; height:8px; border:1px solid rgba(255,255,255,.7); border-radius:50%; box-shadow:0 0 10px rgba(0,255,170,.8); z-index:9; pointer-events:none; }
-    #message { position:fixed; left:50%; bottom:36px; transform:translateX(-50%); padding:12px 18px; border-radius:999px; background:rgba(0,0,0,.68); border:1px solid rgba(255,255,255,.18); color:#fff; font-size:14px; opacity:0; transition:opacity .25s ease; z-index:11; pointer-events:none; white-space:nowrap; }
-    #message.show { opacity:1; }
-    #miniMapWrap { position:fixed; left:14px; bottom:14px; width:210px; height:210px; border-radius:18px; overflow:hidden; border:1px solid rgba(0,255,170,.38); box-shadow:0 0 20px rgba(0,255,170,.22); background:rgba(0,0,0,.55); z-index:12; pointer-events:none; }
-    #miniMap { width:210px; height:210px; display:block; }
-    #testBadge { position:fixed; right:14px; bottom:14px; z-index:12; font-size:12px; padding:8px 10px; border-radius:999px; background:rgba(0,0,0,.6); border:1px solid rgba(0,255,170,.3); color:#baffea; pointer-events:none; }
-    @media (max-width:760px){ #hud{padding:10px; flex-direction:column; gap:10px;} .panel{max-width:100%; width:100%;} .line{font-size:12px;} #message{bottom:235px; max-width:92vw; white-space:normal; text-align:center;} #miniMapWrap{width:155px;height:155px;} #miniMap{width:155px;height:155px;} #testBadge{right:10px;bottom:10px;} }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aurora One Control Nest v0.3</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070b;color:#eaffff;font-family:Arial,Helvetica,sans-serif;user-select:none}button{font-family:inherit;cursor:pointer}:root{--a:#00ffbf;--b:#54c8ff;--g:#ffd66e;--r:#ff4b6e;--p:#af7cff;--panel:rgba(2,10,16,.84);--line:rgba(120,230,255,.26)}
+#aurora-control-nest{position:fixed;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 42%,rgba(0,255,200,.11),transparent 31%),linear-gradient(90deg,rgba(0,0,0,.72),transparent 30%,transparent 68%,rgba(0,0,0,.80))}
+#boot-kernel{position:fixed;inset:0;z-index:999;background:radial-gradient(circle,#08202a,#02070b 70%);display:grid;place-items:center;transition:.8s}.boot-hidden{opacity:0;visibility:hidden}.boot-card{width:min(620px,92vw);border:1px solid rgba(0,255,191,.36);box-shadow:0 0 55px rgba(0,255,191,.2);border-radius:18px;padding:26px;background:rgba(0,0,0,.55)}.boot-title{font-weight:900;letter-spacing:.16em;font-size:28px}.boot-line{margin-top:10px;color:#aee6e2;font-size:13px;letter-spacing:.08em}.boot-bar{height:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12);margin-top:20px}.boot-fill{height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--g));animation:boot 2.1s forwards}@keyframes boot{to{width:100%}}
+.panel{position:absolute;background:linear-gradient(180deg,var(--panel),rgba(0,4,8,.91));border:1px solid var(--line);box-shadow:0 0 26px rgba(0,255,191,.11),inset 0 0 32px rgba(0,0,0,.35);border-radius:14px;backdrop-filter:blur(13px);overflow:hidden}.card{padding:13px}.title{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--a);font-weight:800;margin-bottom:10px}.small{font-size:12px;line-height:1.45;color:#b8ccd7}.row{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:5px 0}.gold{color:var(--g)}.blue{color:var(--b)}.red{color:var(--r)}.green{color:var(--a)}.bar{height:7px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.13);margin:6px 0}.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--a),var(--g))}.hpfill{background:linear-gradient(90deg,#ff355f,#ffd66e)}.xpfill{background:linear-gradient(90deg,#4d8cff,#00ffd0)}
+#system-bus{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:24px;padding:0 20px;border-bottom:1px solid rgba(120,230,255,.25);background:rgba(1,8,14,.86);backdrop-filter:blur(14px);z-index:30}.logo{font-weight:900;font-size:20px;letter-spacing:.1em}.nav{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#aac0cc}.nav.active{color:var(--g);text-shadow:0 0 12px #ffad32}.wallet{margin-left:auto;display:flex;gap:17px;font-size:13px}
+#world-bus{position:absolute;inset:56px 0 0 0;overflow:hidden}#world-renderer{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(0,130,255,.24),transparent 10%),radial-gradient(circle at 38% 58%,rgba(255,130,35,.28),transparent 9%),radial-gradient(circle at 68% 52%,rgba(255,80,100,.20),transparent 11%),linear-gradient(0deg,rgba(3,7,10,.98),rgba(3,12,20,.55) 50%,rgba(5,16,30,.94)),repeating-linear-gradient(90deg,rgba(110,150,170,.08) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(110,150,170,.06) 0 1px,transparent 1px 80px)}#world-renderer:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px);background-size:100% 4px;mix-blend-mode:screen;pointer-events:none}.ruins{position:absolute;bottom:15%;height:44%;width:9%;background:linear-gradient(180deg,#172331,#071018);clip-path:polygon(8% 12%,80% 0,100% 100%,0 100%);opacity:.9}.r1{left:12%}.r2{left:24%;height:52%}.r3{right:20%;height:48%}.r4{right:8%;height:40%}.fire{position:absolute;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,#ffd66e,#ff7a22 35%,transparent 70%);filter:blur(2px);animation:pulse 1.4s infinite alternate}.f1{left:38%;top:58%}.f2{left:65%;top:55%}.f3{left:22%;top:65%}@keyframes pulse{to{transform:scale(1.35);opacity:.72}}
+#player-proxy{position:absolute;left:50%;top:58%;width:120px;height:260px;transform:translate(-50%,-50%);z-index:4}.hero-body{position:absolute;left:42px;top:58px;width:36px;height:130px;border-radius:20px;background:linear-gradient(180deg,#172333,#05090e);box-shadow:0 0 25px rgba(84,200,255,.25)}.hero-head{position:absolute;left:43px;top:26px;width:34px;height:34px;border-radius:50%;background:#0d1720}.hero-core{position:absolute;left:52px;top:103px;width:16px;height:16px;border-radius:50%;background:var(--b);box-shadow:0 0 18px var(--b)}.hero-sword{position:absolute;left:70px;top:72px;width:8px;height:170px;background:linear-gradient(180deg,#80dfff,#0f55ff);transform:rotate(27deg);box-shadow:0 0 20px var(--b);border-radius:8px}.enemy{position:absolute;text-align:center;font-size:12px;text-shadow:0 2px 8px black;z-index:5}.enemy .hp{width:118px;height:5px;border-radius:999px;background:#381018;margin-top:4px;overflow:hidden}.enemy .hp i{display:block;height:100%;background:var(--r);border-radius:999px}.e1{left:38%;top:43%}.e2{left:50%;top:37%}.e3{left:62%;top:44%}
+#passport-bus{left:14px;top:70px;width:295px;bottom:14px;display:flex;flex-direction:column;gap:12px;z-index:20;background:none;border:0;box-shadow:none;backdrop-filter:none}#inventory-bus{right:14px;top:70px;width:370px;bottom:14px;display:flex;flex-direction:column;gap:12px;z-index:20;background:none;border:0;box-shadow:none;backdrop-filter:none}#combat-bus{left:323px;right:398px;bottom:14px;height:212px;display:grid;grid-template-columns:1fr 1.25fr .82fr;gap:12px;z-index:22;background:none;border:0;box-shadow:none;backdrop-filter:none}.bus-card{position:relative}.avatar-grid{display:grid;grid-template-columns:68px 1fr;gap:12px}.portrait{height:68px;border-radius:11px;display:grid;place-items:center;font-size:36px;border:1px solid rgba(255,255,255,.18);background:radial-gradient(circle,#1f314c,#050b12)}#event-log{height:140px;overflow:hidden}
+#inventory-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.slot{height:50px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025));display:grid;place-items:center;font-size:24px;position:relative}.slot:hover{border-color:var(--a);box-shadow:0 0 14px rgba(0,255,191,.2)}.slot b{position:absolute;right:5px;bottom:3px;font-size:10px}.weapon-grid{display:grid;grid-template-columns:112px 1fr;gap:14px}.weapon-art{height:150px;border:1px solid rgba(84,200,255,.45);background:radial-gradient(circle,#174b75,#040b13 72%);border-radius:9px;display:grid;place-items:center;font-size:66px;text-shadow:0 0 22px #54c8ff}.sockets{display:flex;gap:10px;margin-top:10px}.socket{width:47px;height:47px;border-radius:9px;border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-size:23px;background:rgba(255,255,255,.06)}.socket.linked{box-shadow:0 0 16px rgba(255,214,110,.22);border-color:var(--g)}
+#skill-tree-layer{height:128px;position:relative;background:rgba(0,0,0,.19);border-radius:10px;border:1px solid rgba(255,255,255,.08);overflow:hidden}.skill-line{position:absolute;height:1px;background:rgba(255,214,110,.42);transform-origin:left center}.node{position:absolute;width:27px;height:27px;border-radius:50%;border:1px solid #ffd66e;background:#101820;box-shadow:0 0 14px rgba(255,214,110,.22)}.node.on{background:var(--a);border-color:#fff}.node.lock{opacity:.45;border-color:#5b6870}#ability-row{display:flex;gap:8px}.ability{height:54px;flex:1;border-radius:9px;border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;font-size:25px;background:linear-gradient(135deg,rgba(0,80,130,.55),rgba(50,18,20,.65))}.ability.ready{box-shadow:0 0 18px rgba(0,255,190,.22)}.ability:hover{border-color:var(--g)}#map-canvas{width:100%;height:124px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:radial-gradient(circle at 55% 45%,rgba(40,90,80,.8),#051017 70%);position:relative;overflow:hidden}.dot{position:absolute;width:9px;height:9px;border-radius:50%;box-shadow:0 0 12px currentColor}.you{left:48%;top:52%;color:var(--a);background:var(--a)}.forge{left:25%;top:35%;color:var(--g);background:var(--g)}.camp{left:72%;top:32%;color:var(--r);background:var(--r)}.npc{left:37%;top:58%;color:var(--b);background:var(--b)}
+#npc-dialogue-bus{left:50%;transform:translateX(-50%);bottom:238px;width:min(760px,calc(100vw - 720px));min-width:480px;padding:14px;display:none;z-index:40}.speaker{font-weight:800;color:var(--g);margin-bottom:7px}.choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.btn{background:rgba(0,255,190,.09);color:#ecffff;border:1px solid rgba(0,255,190,.35);border-radius:999px;padding:9px 12px}.btn:hover{background:rgba(0,255,190,.2)}#forge-bus{left:50%;top:78px;transform:translateX(-50%);width:540px;padding:14px;display:none;z-index:42}.recipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.recipe{border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;background:rgba(255,255,255,.045)}#quest-bus{left:50%;transform:translateX(-50%);top:70px;width:320px;padding:10px;text-align:center;z-index:18}#simulation-bus{left:50%;bottom:466px;transform:translateX(-50%);padding:10px 16px;border-radius:999px;z-index:25;font-size:13px}#vault-bus{right:402px;top:70px;width:215px;padding:10px;z-index:20}#nest-debug{left:323px;top:70px;width:310px;padding:10px;z-index:19;display:none}#nest-debug pre{white-space:pre-wrap;font-size:11px;color:#bfe9ee;margin:0;max-height:260px;overflow:auto}#toast{position:fixed;top:66px;left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.76);border:1px solid rgba(255,214,110,.42);z-index:100;opacity:0;transition:.25s}
+@media(max-width:1180px){#passport-bus{width:260px}#inventory-bus{width:320px}#combat-bus{left:14px;right:14px;height:210px;grid-template-columns:1fr 1fr}#combat-bus .panel:last-child{display:none}#vault-bus{display:none}#npc-dialogue-bus{width:70vw;min-width:0}}
+</style>
 </head>
 <body>
-  <div id="hud">
-    <div class="panel">
-      <div class="title">Aurora Stage 3.1</div>
-      <div class="line"><strong>Mode:</strong> <span id="modeText">Walking</span></div>
-      <div class="line"><strong>Location:</strong> <span id="districtText">Downtown</span></div>
-      <div class="line"><strong>Speed:</strong> <span id="speedText">0</span></div>
-      <div class="line"><strong>Nearest car:</strong> <span id="carText">None</span></div>
-      <div class="line"><strong>Look mode:</strong> <span id="lookText">Drag fallback</span></div>
-    </div>
-    <div class="panel">
-      <div class="title">Twin Tower System</div>
-      <div class="line"><strong>Health:</strong> <span id="healthText">100</span>%</div>
-      <div class="barWrap"><div id="healthBar" class="barFill"></div></div>
-      <div class="line"><strong>Money:</strong> £<span id="moneyText">250</span></div>
-      <div class="line"><strong>Wanted:</strong> <span id="wantedText">☆☆☆☆☆</span></div>
-      <div class="line"><strong>Nearby:</strong> <span id="nearbyText">City grid</span></div>
-    </div>
-    <div class="panel">
-      <div class="title">Controls</div>
-      <div class="line">WASD = move / drive</div>
-      <div class="line">Mouse drag = look around</div>
-      <div class="line">E = enter / exit car / use door</div>
-      <div class="line">Shift = sprint / boost</div>
-      <div class="line">M = overview camera outside only</div>
-    </div>
-  </div>
-  <div id="crosshair"></div>
-  <div id="miniMapWrap"><canvas id="miniMap" width="210" height="210"></canvas></div>
-  <div id="message">Ready</div>
-  <div id="testBadge">Self-tests pending</div>
-
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-
-    const WORLD_SIZE = 2200, HALF_WORLD = WORLD_SIZE / 2, WATER_LEVEL = -0.06;
-    let sceneMode = 'city';
-    let currentInterior = null;
-    let interiorFloor = 0;
-    let cityReturnPosition = null;
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x071019);
-    scene.fog = new THREE.Fog(0x071019, 180, 1600);
-    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 4000);
-    const renderer = new THREE.WebGLRenderer({ antialias:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); renderer.setSize(window.innerWidth,window.innerHeight); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; document.body.appendChild(renderer.domElement);
-
-    const miniMap=document.getElementById('miniMap'), miniCtx=miniMap.getContext('2d');
-    const modeText=document.getElementById('modeText'), districtText=document.getElementById('districtText'), speedText=document.getElementById('speedText'), carText=document.getElementById('carText'), lookText=document.getElementById('lookText'), healthText=document.getElementById('healthText'), healthBar=document.getElementById('healthBar'), moneyText=document.getElementById('moneyText'), wantedText=document.getElementById('wantedText'), nearbyText=document.getElementById('nearbyText'), message=document.getElementById('message'), testBadge=document.getElementById('testBadge');
-
-    const gameState={health:100,money:250,wanted:0,lastCollisionTime:0,collisions:0};
-    let colliders=[], buildings=[], roads=[], highways=[], bridges=[], metroEntrances=[], interiorDoors=[], districts=[], interactiveZones=[];
-    const cityObjects = new THREE.Group();
-    const interiorObjects = new THREE.Group();
-    scene.add(cityObjects); scene.add(interiorObjects); interiorObjects.visible=false;
-
-    function showMessage(text){ message.textContent=text; message.classList.add('show'); clearTimeout(showMessage.timer); showMessage.timer=setTimeout(()=>message.classList.remove('show'),1800); }
-    function mat(color,o={}){ return new THREE.MeshStandardMaterial({color,roughness:o.roughness??.82,metalness:o.metalness??0,emissive:o.emissive??0x000000,emissiveIntensity:o.emissiveIntensity??0}); }
-    const mats={ grass:mat(0x18281d), islandGrass:mat(0x1e3025), water:new THREE.MeshStandardMaterial({color:0x072633,roughness:.55,metalness:.05,transparent:true,opacity:.86}), road:mat(0x11151a,{roughness:.94}), highway:mat(0x171b20,{roughness:.9}), line:mat(0xffe066,{emissive:0x665000,emissiveIntensity:.3}), pavement:mat(0x2d343a), bridge:mat(0x3e454b,{roughness:.74,metalness:.15}), tunnel:mat(0x15191f), station:mat(0x263541,{emissive:0x062033,emissiveIntensity:.25}), subwayLine:mat(0x00ffaa,{emissive:0x00ffaa,emissiveIntensity:.9}), door:mat(0xffee55,{emissive:0xffaa00,emissiveIntensity:.8}), neon:mat(0x00ffaa,{emissive:0x00ffaa,emissiveIntensity:1.4}), redNeon:mat(0xff3355,{emissive:0xff2244,emissiveIntensity:1.1}), glass:mat(0x87b8cc,{roughness:.32,metalness:.25,emissive:0x0b1e26,emissiveIntensity:.15}), towerCore:mat(0xb7c2c8,{roughness:.62,metalness:.1}), floor:mat(0x263038), wall:mat(0x58606a), carpet:mat(0x24394a), stair:mat(0x69727a), lobby:mat(0x31404c,{emissive:0x07131a,emissiveIntensity:.25}) };
-
-    scene.add(new THREE.HemisphereLight(0x9fdcff,0x172018,1.28));
-    const sun=new THREE.DirectionalLight(0xffffff,2.35); sun.position.set(260,420,160); sun.castShadow=true; sun.shadow.camera.left=-850; sun.shadow.camera.right=850; sun.shadow.camera.top=850; sun.shadow.camera.bottom=-850; sun.shadow.mapSize.width=2048; sun.shadow.mapSize.height=2048; scene.add(sun);
-
-    function addBox(w,h,d,x,y,z,material,cast=true,receive=true,collider=false,tag='',parent=cityObjects){ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material); mesh.position.set(x,y,z); mesh.castShadow=cast; mesh.receiveShadow=receive; mesh.userData.tag=tag; parent.add(mesh); if(collider) addCollider(mesh,w,d,tag); return mesh; }
-    function addCollider(mesh,w,d,tag='',mode='city'){ colliders.push({mesh,x:mesh.position.x,z:mesh.position.z,halfX:w/2,halfZ:d/2,tag,mode}); }
-    function addLand(name,x,z,w,d,material){ addBox(w,.22,d,x,0,z,material,false,true,false,name); districts.push({name,x,z,halfX:w/2,halfZ:d/2}); }
-
-    function buildCity(){
-      addBox(WORLD_SIZE,.02,WORLD_SIZE,0,WATER_LEVEL,0,mats.water,false,true,false,'water');
-      addLand('Downtown Core',-250,-100,760,720,mats.grass); addLand('North Residential Borough',-330,-650,680,420,mats.grass); addLand('Industrial Docks',-360,520,760,420,mats.grass); addLand('East Island Borough',620,-20,520,640,mats.islandGrass); addLand('Airport / Service Flats',240,610,420,260,mats.grass);
-      function addRoad(x,z,w,d,kind='local'){ const y=kind==='highway'?4.4:.13, h=kind==='highway'?.38:.09; const r=addBox(w,h,d,x,y,z,kind==='highway'?mats.highway:mats.road,false,true,false,kind); roads.push({x,z,w,d,kind}); if(kind==='highway')highways.push(r); return r; }
-      function addRoadLine(x,z,w,d,e=false){ addBox(w,.08,d,x,e?4.65:.2,z,mats.line,false,false,false,'road-line'); }
-      for(let x=-600;x<=140;x+=90){addRoad(x,-100,16,720);addRoadLine(x,-100,.45,690)} for(let z=-430;z<=260;z+=90){addRoad(-250,z,760,16);addRoadLine(-250,z,730,.45)}
-      for(let x=-620;x<=-60;x+=115)addRoad(x,-650,14,410); for(let z=-820;z<=-500;z+=85)addRoad(-330,z,660,14);
-      for(let x=-680;x<=-60;x+=130)addRoad(x,520,16,390); for(let z=360;z<=700;z+=90)addRoad(-360,z,730,16);
-      for(let x=420;x<=810;x+=95)addRoad(x,-20,15,610); for(let z=-290;z<=240;z+=90)addRoad(620,z,500,15);
-      addRoad(240,610,390,32); addRoadLine(240,610,350,.55); addRoad(-250,35,980,34,'highway'); addRoadLine(-250,35,930,.65,true); addRoad(-125,-520,34,470,'highway'); addRoadLine(-125,-520,.65,420,true); addRoad(210,360,34,520,'highway'); addRoadLine(210,360,.65,470,true); addRoad(330,35,250,34,'highway'); addRoadLine(330,35,220,.65,true); addRoad(520,35,240,34,'highway'); addRoadLine(520,35,210,.65,true);
-      addBridge('East River Bridge',265,35,330,38,0); addBridge('South Service Bridge',360,360,380,24,Math.PI*.08);
-      fillDistrict({name:'Downtown Core',minX:-570,maxX:100,minZ:-390,maxZ:230,stepX:70,stepZ:70,baseH:28,hRand:74,palette:[mat(0x27384a),mat(0x344153),mat(0x243642),mat(0x3e3c49)],enterableEvery:9,skipTwin:true});
-      fillDistrict({name:'North Residential Borough',minX:-590,maxX:-90,minZ:-795,maxZ:-520,stepX:75,stepZ:65,baseH:10,hRand:26,palette:[mat(0x55382f),mat(0x4b4135),mat(0x31483a),mat(0x4f4d44)],enterableEvery:5});
-      fillDistrict({name:'Industrial Docks',minX:-650,maxX:-80,minZ:385,maxZ:680,stepX:95,stepZ:80,baseH:12,hRand:24,palette:[mat(0x3f474b),mat(0x514a3d),mat(0x334049),mat(0x4a3b34)],enterableEvery:4});
-      fillDistrict({name:'East Island Borough',minX:420,maxX:820,minZ:-270,maxZ:230,stepX:75,stepZ:75,baseH:14,hRand:45,palette:[mat(0x394f5c),mat(0x533d56),mat(0x365344),mat(0x584c39)],enterableEvery:5});
-      for(let i=0;i<8;i++)addBox(42,5,12,-665+i*75,2.7,745,mats.bridge,true,true,false,'dock-pier'); addBox(150,26,70,215,13,700,mat(0x303943),true,true,true,'airport-hangar'); addBox(70,38,48,375,19,670,mat(0x29333d),true,true,true,'airport-terminal');
-      addMetroEntrance('Central Metro',-250,-55,0); addMetroEntrance('North Metro',-330,-620,Math.PI/2); addMetroEntrance('Docklands Subway',-455,520,0); addMetroEntrance('Island Metro',620,-65,Math.PI/2); addMetroEntrance('Airport Metro',305,610,0);
-      addSubwayTunnel(-250,-335,9,570); addSubwayTunnel(-250,-55,760,9); addSubwayTunnel(185,-65,880,9); addSubwayTunnel(620,-65,9,430); addSubwayTunnel(-455,235,9,570);
-      buildTwinTowers(); addNeonSigns();
-    }
-
-    function addBridge(name,x,z,w,d,rot=0){ const group=new THREE.Group(); group.position.set(x,5.1,z); group.rotation.y=rot; const deck=new THREE.Mesh(new THREE.BoxGeometry(w,.55,d),mats.bridge); deck.castShadow=true; deck.receiveShadow=true; group.add(deck); const railL=new THREE.Mesh(new THREE.BoxGeometry(w,1.2,1.1),mats.bridge); railL.position.z=d/2-1; railL.position.y=.75; group.add(railL); const railR=railL.clone(); railR.position.z=-d/2+1; group.add(railR); for(let i=-w/2+35;i<=w/2-35;i+=70){ const p=new THREE.Mesh(new THREE.BoxGeometry(2.4,15,2.4),mats.bridge); p.position.set(i,7,d/2-4); group.add(p); const p2=p.clone(); p2.position.z=-d/2+4; group.add(p2);} cityObjects.add(group); bridges.push({name,group,x,z,w,d,rot}); }
-    function pointNearRoad(x,z,pad){ return roads.some(r=>Math.abs(x-r.x)<r.w/2+pad&&Math.abs(z-r.z)<r.d/2+pad); }
-    function addBuilding(x,z,w,d,h,material,district,enterable=false){ addBox(w+8,.18,d+8,x,.18,z,mats.pavement,false,true,false,'pavement'); const b=addBox(w,h,d,x,h/2+.28,z,material,true,true,true,district); b.userData.district=district; b.userData.enterable=enterable; buildings.push(b); if(enterable){ const doorZ=z-d/2-.6; const door=addBox(3.6,4.2,.35,x,2.35,doorZ,mats.door,false,false,false,'interior-door'); interiorDoors.push({door,x,z:doorZ,district,building:b,type:'generic'});} return b; }
-    function fillDistrict(o){ let idx=0; for(let x=o.minX;x<=o.maxX;x+=o.stepX){ for(let z=o.minZ;z<=o.maxZ;z+=o.stepZ){ if(o.skipTwin&&x>-390&&x<-110&&z>-260&&z<40)continue; if(Math.abs((x%90+90)%90)<18||Math.abs((z%90+90)%90)<18)continue; if(pointNearRoad(x,z,13))continue; const w=o.stepX*(.42+Math.random()*.18), d=o.stepZ*(.42+Math.random()*.18), h=o.baseH+Math.random()*o.hRand; addBuilding(x,z,w,d,h,o.palette[idx%o.palette.length],o.name,idx%o.enterableEvery===0); idx++; } } }
-    function addMetroEntrance(name,x,z,rot=0){ const group=new THREE.Group(); group.position.set(x,.35,z); group.rotation.y=rot; const base=new THREE.Mesh(new THREE.BoxGeometry(16,1.2,10),mats.station); base.position.y=.6; group.add(base); const stair=new THREE.Mesh(new THREE.BoxGeometry(8,.7,13),mats.tunnel); stair.position.set(0,.55,-5); group.add(stair); const sign=new THREE.Mesh(new THREE.BoxGeometry(13,4,.5),mats.subwayLine); sign.position.set(0,4,4.8); group.add(sign); cityObjects.add(group); metroEntrances.push({name,group,x,z,rot}); }
-    function addSubwayTunnel(x,z,w,d){ addBox(w,.35,d,x,-2.2,z,mats.tunnel,false,false,false,'subway-tunnel'); addBox(w>d?w:.45,.12,d>=w?d:.45,x,-1.9,z,mats.subwayLine,false,false,false,'subway-route'); }
-
-    function buildTwinTowers(){
-      const plaza = addBox(250,.24,170,-250,.28,-115,mats.pavement,false,true,false,'twin-tower-plaza');
-      addBox(245,.14,8,-250,.45,-28,mats.line,false,false,false,'plaza-front-line');
-      createTowerShell('Tower A',-310,-130,58,58,230);
-      createTowerShell('Tower B',-190,-130,58,58,230);
-      addBox(126,10,14,-250,132,-130,mats.bridge,true,true,false,'skybridge-placeholder');
-      addBox(22,9,20,-310,4.8,-162,mats.lobby,true,true,false,'tower-a-entrance');
-      addBox(22,9,20,-190,4.8,-162,mats.lobby,true,true,false,'tower-b-entrance');
-      const doorA=addBox(7,6,.6,-310,3.4,-172,mats.door,false,false,false,'tower-a-door');
-      const doorB=addBox(7,6,.6,-190,3.4,-172,mats.door,false,false,false,'tower-b-door');
-      interiorDoors.push({door:doorA,x:-310,z:-172,district:'Twin Towers',building:null,type:'tower',tower:'A'});
-      interiorDoors.push({door:doorB,x:-190,z:-172,district:'Twin Towers',building:null,type:'tower',tower:'B'});
-      interactiveZones.push({type:'tower-door',x:-310,z:-172,radius:8,tower:'A'}); interactiveZones.push({type:'tower-door',x:-190,z:-172,radius:8,tower:'B'});
-    }
-    function createTowerShell(name,x,z,w,d,h){
-      addBox(w,h,d,x,h/2+.3,z,mats.glass,true,true,true,name);
-      addBox(7,h+8,7,x,h/2+4,z,mats.towerCore,true,true,true,`${name} central core`);
-      for(let y=18;y<h;y+=18) addBox(w+1,.55,d+1,x,y,z,mats.line,false,false,false,`${name} floor band`);
-      for(let ix=-1;ix<=1;ix+=2){ addBox(1.1,h+4,1.1,x+ix*w/2,yClamp(h/2+2),z,mats.towerCore,true,true,false,`${name} corner rib`); addBox(1.1,h+4,1.1,x+ix*w/2,yClamp(h/2+2),z+d/2,mats.towerCore,true,true,false,`${name} corner rib`); }
-      function yClamp(v){return v+.3}
-      buildings.push({position:{x,z},userData:{district:'Twin Towers',enterable:true,tower:name}});
-    }
-
-    function addNeonSigns(){ for(let i=0;i<65;i++){ const b=buildings[Math.floor(Math.random()*buildings.length)]; if(!b||!b.position||b.userData?.tower)continue; const c=b.position; addBox(7+Math.random()*8,.22,1,c.x,5+Math.random()*18,c.z-7,Math.random()>.72?mats.redNeon:mats.neon,false,false,false,'neon-sign'); } }
-
-    buildCity();
-
-    const player=new THREE.Group(); const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.05,6,12),mat(0x00ffaa,{emissive:0x003322,emissiveIntensity:.4})); body.position.y=1.15; body.castShadow=true; player.add(body); player.position.set(-310,.25,-182); scene.add(player);
-    function createCar(x,z,color){ const car=new THREE.Group(); const mainMat=mat(color,{roughness:.55,metalness:.2}), darkMat=mat(0x07090b,{roughness:.6}); const cb=new THREE.Mesh(new THREE.BoxGeometry(3.6,.9,6),mainMat); cb.position.y=.75; cb.castShadow=true; car.add(cb); const cabin=new THREE.Mesh(new THREE.BoxGeometry(2.5,.8,2.4),darkMat); cabin.position.set(0,1.35,-.45); cabin.castShadow=true; car.add(cabin); const wheelGeo=new THREE.CylinderGeometry(.45,.45,.38,18); [[-1.85,.45,2],[1.85,.45,2],[-1.85,.45,-2],[1.85,.45,-2]].forEach(([wx,wy,wz])=>{const wheel=new THREE.Mesh(wheelGeo,darkMat); wheel.rotation.z=Math.PI/2; wheel.position.set(wx,wy,wz); wheel.castShadow=true; car.add(wheel);}); car.position.set(x,.25,z); car.rotation.y=Math.random()*Math.PI*2; car.userData={speed:0,steering:0,occupied:false,health:100}; cityObjects.add(car); return car; }
-    const cars=[createCar(-210,-45,0xff3355),createCar(-350,-180,0x3388ff),createCar(-120,110,0xffcc33),createCar(610,-40,0xffffff),createCar(690,160,0x9b5cff),createCar(-460,540,0xff8833),createCar(230,610,0x66eeff),createCar(-125,-520,0xdddddd)];
-
-    function clearInterior(){ while(interiorObjects.children.length) interiorObjects.remove(interiorObjects.children[0]); colliders=colliders.filter(c=>c.mode!=='interior'); interactiveZones=interactiveZones.filter(z=>z.sceneMode!=='interior'); }
-    function enterTower(tower){ if(mode==='driving') return showMessage('Exit the car before entering tower'); cityReturnPosition=player.position.clone(); sceneMode='interior'; currentInterior=`Tower ${tower}`; interiorFloor=0; overviewCamera=false; cityObjects.visible=false; interiorObjects.visible=true; clearInterior(); buildTowerInterior(tower,interiorFloor); player.position.set(0,.25,38); yaw=Math.PI; showMessage(`Entered Tower ${tower} lobby`); }
-    function exitInterior(){ sceneMode='city'; cityObjects.visible=true; interiorObjects.visible=false; clearInterior(); currentInterior=null; player.position.copy(cityReturnPosition||new THREE.Vector3(-310,.25,-182)); yaw=0; showMessage('Exited to city plaza'); }
-    function changeFloor(dir){
-      if(sceneMode!=='interior')return;
-      interiorFloor=THREE.MathUtils.clamp(interiorFloor+dir,-1,12);
-      clearInterior();
-      buildTowerInterior(currentInterior.includes('A')?'A':'B',interiorFloor);
-      player.position.set(-28,.25,24);
-      showMessage(`${currentInterior} ${floorLabel(interiorFloor)}`);
-    }
-
-    function floorLabel(floor){
-      if(floor===-1)return 'Basement Parking';
-      if(floor===0)return 'Lobby';
-      if(floor===1)return 'Admin Floor';
-      if(floor===2)return 'Conference Floor';
-      if(floor===3)return 'Open Office Floor';
-      if(floor===4)return 'Finance Floor';
-      if(floor===5)return 'IT / Server Floor';
-      if(floor===6)return 'Legal Records Floor';
-      if(floor===7)return 'Executive Floor';
-      if(floor===8)return 'Maintenance Floor';
-      if(floor===9)return 'Observation Floor';
-      if(floor===10)return 'Skybridge Plant Room';
-      if(floor===11)return 'Penthouse Office';
-      if(floor===12)return 'Rooftop';
-      return `Floor ${floor}`;
-    }
-
-    function buildTowerInterior(tower,floor){
-      const label=floorLabel(floor);
-      addInteriorShell(label);
-      addCoreSystems();
-      addNavigationZones();
-
-      if(floor===-1) addBasementParking(tower);
-      else if(floor===0) addLobbyFloor(tower);
-      else if(floor===1) addAdminFloor(tower);
-      else if(floor===2) addConferenceFloor(tower);
-      else if(floor===3) addOpenOfficeFloor(tower);
-      else if(floor===4) addFinanceFloor(tower);
-      else if(floor===5) addServerFloor(tower);
-      else if(floor===6) addRecordsFloor(tower);
-      else if(floor===7) addExecutiveFloor(tower);
-      else if(floor===8) addMaintenanceFloor(tower);
-      else if(floor===9) addObservationFloor(tower);
-      else if(floor===10) addPlantFloor(tower);
-      else if(floor===11) addPenthouseFloor(tower);
-      else addRooftop(tower);
-
-      addFloorSignage(tower,floor,label);
-      districtText.textContent=`${currentInterior} — ${label}`;
-    }
-
-    function addInteriorShell(label){
-      addBox(104,.3,104,0,0,0,label.includes('Lobby')?mats.lobby:mats.floor,false,true,false,'interior-floor',interiorObjects);
-      addBox(106,10,1,0,5,-52,mats.wall,true,true,true,'north wall',interiorObjects);
-      addBox(106,10,1,0,5,52,mats.wall,true,true,true,'south wall',interiorObjects);
-      addBox(1,10,106,-52,5,0,mats.wall,true,true,true,'west wall',interiorObjects);
-      addBox(1,10,106,52,5,0,mats.wall,true,true,true,'east wall',interiorObjects);
-      addBox(104,.35,104,0,9.8,0,mat(0x1d252d),false,true,false,'ceiling',interiorObjects);
-    }
-
-    function addCoreSystems(){
-      addBox(18,10,18,0,5,0,mats.towerCore,true,true,true,'elevator core',interiorObjects);
-      addBox(5,8,4,-5,4.2,10,mats.door,false,false,false,'lift door A',interiorObjects);
-      addBox(5,8,4,5,4.2,10,mats.door,false,false,false,'lift door B',interiorObjects);
-      addBox(12,10,22,-32,5,24,mats.stair,true,true,true,'stairwell shell',interiorObjects);
-      addBox(8,1.1,16,-32,1.1,24,mats.line,false,false,false,'stairwell marker',interiorObjects);
-      addBox(4,5,1,-32,3.2,12,mats.door,false,false,false,'stairwell door',interiorObjects);
-    }
-
-    function addNavigationZones(){
-      interactiveZones.push({sceneMode:'interior',type:'exit',x:0,z:48,radius:7});
-      interactiveZones.push({sceneMode:'interior',type:'floor-up',x:-32,z:25,radius:7});
-      interactiveZones.push({sceneMode:'interior',type:'floor-down',x:-32,z:15,radius:7});
-      interactiveZones.push({sceneMode:'interior',type:'floor-up',x:0,z:11,radius:7});
-      interactiveZones.push({sceneMode:'interior',type:'floor-down',x:7,z:11,radius:7});
-    }
-
-    function addFloorSignage(tower,floor,label){
-      addBox(28,.15,3,0,.18,48,mats.door,false,false,false,'exit trigger marker',interiorObjects);
-      addBox(18,4,.6,0,4.2,50.5,mats.neon,false,false,false,`${tower} ${label} sign`,interiorObjects);
-      addBox(10,3,.6,-32,4.2,12.8,mats.subwayLine,false,false,false,'stairs sign',interiorObjects);
-    }
-
-    function wall(x,z,w,d){ addBox(w,8,d,x,4,z,mats.wall,true,true,true,'interior partition',interiorObjects); }
-    function glassWall(x,z,w,d){ addBox(w,7,d,x,3.8,z,mats.glass,true,true,true,'glass partition',interiorObjects); }
-    function desk(x,z,rot=0){ const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=rot; const top=new THREE.Mesh(new THREE.BoxGeometry(7,.6,3.2),mats.bridge); top.position.y=1.1; g.add(top); const screen=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.4,.25),mats.neon); screen.position.set(0,2.1,-1.25); g.add(screen); const chair=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,2),mats.carpet); chair.position.set(0,.8,2.5); g.add(chair); interiorObjects.add(g); return g; }
-    function table(x,z,w=14,d=5){ addBox(w,1.2,d,x,.8,z,mats.bridge,true,true,true,'table',interiorObjects); }
-    function sofa(x,z,w=10){ addBox(w,1.6,3,x,.9,z,mats.carpet,true,true,true,'sofa',interiorObjects); }
-    function plant(x,z){ addBox(2,1.4,2,x,.75,z,mat(0x4a3322),true,true,true,'plant pot',interiorObjects); addBox(4,4,4,x,3,z,mat(0x1c6b35),true,true,false,'plant leaves',interiorObjects); }
-    function vending(x,z){ addBox(4,7,3,x,3.5,z,mats.redNeon,true,true,true,'vending machine',interiorObjects); }
-    function filing(x,z,w=4){ addBox(w,5,3,x,2.5,z,mat(0x4b555f),true,true,true,'filing cabinet',interiorObjects); }
-    function serverRack(x,z){ addBox(4,7,3,x,3.5,z,mats.tunnel,true,true,true,'server rack',interiorObjects); addBox(3,.3,.2,x,5,z-1.6,mats.neon,false,false,false,'server lights',interiorObjects); }
-
-    function addBasementParking(tower){
-      addBox(92,.12,18,0,.35,0,mats.road,false,true,false,'parking lane',interiorObjects);
-      addBox(18,.12,92,0,.36,0,mats.road,false,true,false,'parking lane cross',interiorObjects);
-      for(let i=-3;i<=3;i++){ addBox(9,.08,16,i*12,.45,-32,mats.line,false,false,false,'parking bay',interiorObjects); addBox(9,.08,16,i*12,.45,32,mats.line,false,false,false,'parking bay',interiorObjects); }
-      addBox(18,4,28,28,2,-30,mats.station,true,true,true,'security booth',interiorObjects);
-      addBox(22,5,14,-25,2.6,-28,mats.tunnel,true,true,true,'loading dock',interiorObjects);
-      addBox(18,5,10,30,2.6,28,mats.bridge,true,true,true,'generator room',interiorObjects);
-      for(let i=0;i<5;i++) addBox(3,2,6,-36+i*14,1.2,34,Math.random()>.5?mats.redNeon:mats.neon,true,true,true,'parked car block',interiorObjects);
-    }
-
-    function addLobbyFloor(tower){
-      addBox(32,5,10,0,2.8,30,mats.door,true,true,false,'main entrance glow',interiorObjects);
-      addBox(26,3,8,-20,1.7,10,mats.bridge,true,true,true,'reception desk',interiorObjects);
-      addBox(14,4,10,24,2,16,mats.station,true,true,true,'security desk',interiorObjects);
-      sofa(26,-22,14); sofa(8,-28,12); table(18,-25,9,4); plant(-42,38); plant(42,38); plant(-42,-42); plant(42,-42);
-      wall(-18,-14,1,34); glassWall(22,-8,1,25); vending(-42,8); vending(-42,16);
-      addBox(20,4,16,-25,-.2,-32,mats.carpet,true,true,false,'waiting lounge rug',interiorObjects);
-    }
-
-    function addAdminFloor(tower){
-      addBox(86,.12,4,0,.35,18,mats.carpet,false,true,false,'main hallway',interiorObjects); addBox(4,.12,78,18,.35,0,mats.carpet,false,true,false,'side hallway',interiorObjects);
-      for(let z=-34;z<=34;z+=17){ wall(-12,z,1,13); glassWall(32,z,1,13); desk(-30,z,0); desk(36,z,Math.PI); }
-      filing(-43,-35); filing(-43,-28); filing(43,34); plant(42,-42);
-    }
-
-    function addConferenceFloor(tower){
-      glassWall(0,-22,72,1); glassWall(0,22,72,1); wall(-36,0,1,44); wall(36,0,1,44);
-      table(0,-34,34,8); table(0,34,34,8); table(-22,0,18,6); table(22,0,18,6);
-      for(let i=-4;i<=4;i++){ sofa(i*7,-40,4); sofa(i*7,40,4); }
-      addBox(20,6,.6,0,-999,0,mats.neon,false,false,false,'unused',interiorObjects);
-      addBox(20,5,.8,0,4,-51,mats.neon,false,false,false,'presentation wall',interiorObjects);
-    }
-
-    function addOpenOfficeFloor(tower){
-      addBox(90,.12,5,0,.35,18,mats.carpet,false,true,false,'main hall',interiorObjects); addBox(5,.12,86,20,.35,0,mats.carpet,false,true,false,'cross hall',interiorObjects);
-      for(let x=-36;x<=36;x+=18){ for(let z=-34;z<=34;z+=17){ if(Math.abs(x)<12&&Math.abs(z)<12)continue; desk(x,z,(x>0?Math.PI:0)); } }
-      wall(-43,0,1,80); wall(43,0,1,80); glassWall(0,-43,80,1); filing(-43,38); filing(43,38); vending(0,42);
-    }
-
-    function addFinanceFloor(tower){
-      addBox(88,.12,4,0,.35,18,mats.carpet,false,true,false,'finance corridor',interiorObjects);
-      wall(-5,-22,1,42); wall(28,-22,1,42); glassWall(12,-42,34,1); glassWall(12,0,34,1);
-      for(let i=0;i<12;i++) desk(-38+(i%4)*10,-30+Math.floor(i/4)*14,0);
-      addBox(20,5,14,28,2.6,-32,mats.tunnel,true,true,true,'vault room',interiorObjects); filing(38,-6,7); filing(38,4,7); table(8,28,26,7);
-    }
-
-    function addServerFloor(tower){
-      wall(-24,0,1,86); wall(24,0,1,86); addBox(88,.12,4,0,.35,22,mats.carpet,false,true,false,'server corridor',interiorObjects);
-      for(let x=-38;x<=38;x+=12){ for(let z=-34;z<=8;z+=12){ if(Math.abs(x)<12&&Math.abs(z)<12)continue; serverRack(x,z); } }
-      addBox(18,5,12,34,2.7,34,mats.station,true,true,true,'network ops room',interiorObjects); desk(34,36,Math.PI); vending(-42,40);
-    }
-
-    function addRecordsFloor(tower){
-      addBox(86,.12,4,0,.35,18,mats.carpet,false,true,false,'records hall',interiorObjects);
-      for(let x=-38;x<=38;x+=12){ for(let z=-35;z<=35;z+=14){ if(Math.abs(x)<13&&Math.abs(z)<13)continue; filing(x,z,7); } }
-      wall(0,-34,70,1); wall(0,34,70,1); addBox(16,5,12,36,2.7,0,mats.tunnel,true,true,true,'archive vault',interiorObjects);
-    }
-
-    function addExecutiveFloor(tower){
-      glassWall(0,-20,82,1); wall(-20,12,1,34); wall(20,12,1,34);
-      table(0,-34,34,9); addBox(26,3,12,-30,1.7,25,mats.bridge,true,true,true,'executive desk',interiorObjects); sofa(28,25,16); table(28,18,10,5); plant(-42,38); plant(42,38); addBox(32,5,.8,0,4,-51,mats.neon,false,false,false,'skyline glass wall',interiorObjects);
-    }
-
-    function addMaintenanceFloor(tower){
-      addBox(80,.12,6,0,.35,0,mats.tunnel,false,true,false,'service corridor',interiorObjects); addBox(6,.12,80,0,.36,0,mats.tunnel,false,true,false,'service cross corridor',interiorObjects);
-      for(let i=-3;i<=3;i++){ addBox(8,6,8,i*13,3,-28,mats.bridge,true,true,true,'hvac unit',interiorObjects); addBox(8,6,8,i*13,3,32,mats.station,true,true,true,'plant machinery',interiorObjects); }
-      wall(-42,0,1,80); wall(42,0,1,80); vending(36,-38);
-    }
-
-    function addObservationFloor(tower){
-      addBox(86,.12,86,0,.35,0,mats.carpet,false,true,false,'observation carpet',interiorObjects);
-      glassWall(0,-46,88,1); glassWall(0,46,88,1); glassWall(-46,0,1,88); glassWall(46,0,1,88);
-      for(let i=0;i<10;i++){ table(Math.cos(i*.63)*30,Math.sin(i*.63)*30,6,3); }
-      addBox(18,3,18,0,1.7,-28,mats.neon,false,false,false,'city model',interiorObjects); sofa(-28,30,12); sofa(28,30,12);
-    }
-
-    function addPlantFloor(tower){
-      addBox(90,.12,8,0,.35,0,mats.tunnel,false,true,false,'plant walkway',interiorObjects);
-      addBox(8,.12,90,0,.36,0,mats.tunnel,false,true,false,'plant walkway cross',interiorObjects);
-      for(let x=-34;x<=34;x+=17){ addBox(10,7,14,x,3.5,-28,mats.bridge,true,true,true,'water tank',interiorObjects); addBox(10,7,14,x,3.5,28,mats.station,true,true,true,'air handler',interiorObjects); }
-    }
-
-    function addPenthouseFloor(tower){
-      glassWall(0,-44,88,1); glassWall(44,0,1,88); wall(-44,0,1,88); wall(0,44,88,1);
-      addBox(30,4,18,-18,2.3,-24,mats.bridge,true,true,true,'private office',interiorObjects); addBox(24,3,12,24,1.8,24,mats.carpet,true,true,true,'private lounge',interiorObjects); table(20,-22,22,7); sofa(-24,28,18); plant(38,-38); plant(-38,38);
-    }
-
-    function addRooftop(tower){
-      addBox(104,.45,104,0,.1,0,mat(0x202830),false,true,false,'roof deck',interiorObjects);
-      addBox(20,5,14,-30,2.7,28,mats.towerCore,true,true,true,'roof access shack',interiorObjects);
-      addBox(36,.22,36,18,.45,-18,mats.redNeon,false,false,false,'helipad H marker',interiorObjects);
-      for(let i=-2;i<=2;i++){ addBox(10,5,8,i*16,2.6,34,mats.station,true,true,true,'roof hvac',interiorObjects); }
-      addBox(106,3,2,0,1.6,-52,mats.bridge,true,true,true,'roof rail',interiorObjects); addBox(106,3,2,0,1.6,52,mats.bridge,true,true,true,'roof rail',interiorObjects); addBox(2,3,106,-52,1.6,0,mats.bridge,true,true,true,'roof rail',interiorObjects); addBox(2,3,106,52,1.6,0,mats.bridge,true,true,true,'roof rail',interiorObjects);
-    }
-
-    const keys={}; let pointerLocked=false,pointerLockAvailable=false,dragLookActive=false,overviewCamera=false,lastPointerX=0,lastPointerY=0,yaw=0,pitch=-.15,mode='walking',activeCar=null,playerVelocity=new THREE.Vector3(); const clock=new THREE.Clock();
-    document.addEventListener('keydown',e=>{keys[e.code]=true; if(e.code==='KeyE') useAction(); if(e.code==='KeyM'&&sceneMode==='city'){overviewCamera=!overviewCamera; showMessage(overviewCamera?'City overview camera':'Follow camera');}}); document.addEventListener('keyup',e=>keys[e.code]=false);
-    function useAction(){ if(sceneMode==='interior'){ const z=nearestInteractive(); if(z?.type==='exit') return exitInterior(); if(z?.type==='floor-up') return changeFloor(1); if(z?.type==='floor-down') return changeFloor(-1); return showMessage('No interior action nearby'); } const towerZone=nearestInteractive(); if(towerZone?.type==='tower-door') return enterTower(towerZone.tower); toggleCarMode(); }
-    function applyLookDelta(dx,dy){ yaw-=dx*.0022; pitch-=dy*.0018; pitch=Math.max(-.85,Math.min(.35,pitch)); }
-    async function tryPointerLock(){ if(!document.body.requestPointerLock||pointerLocked)return; try{ const p=document.body.requestPointerLock(); if(p&&typeof p.then==='function')await p; pointerLockAvailable=true; }catch(e){ pointerLockAvailable=false; pointerLocked=false; lookText.textContent='Drag fallback'; showMessage('Pointer lock blocked by sandbox — drag to look instead'); } }
-    renderer.domElement.addEventListener('click',()=>tryPointerLock()); renderer.domElement.addEventListener('pointerdown',e=>{dragLookActive=true;lastPointerX=e.clientX;lastPointerY=e.clientY;renderer.domElement.setPointerCapture?.(e.pointerId)}); renderer.domElement.addEventListener('pointerup',e=>{dragLookActive=false;renderer.domElement.releasePointerCapture?.(e.pointerId)}); renderer.domElement.addEventListener('pointercancel',()=>dragLookActive=false); document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===document.body; pointerLockAvailable=pointerLockAvailable||pointerLocked; lookText.textContent=pointerLocked?'Pointer lock':'Drag fallback';}); document.addEventListener('pointerlockerror',()=>{pointerLocked=false;pointerLockAvailable=false;lookText.textContent='Drag fallback'}); document.addEventListener('mousemove',e=>{ if(pointerLocked)return applyLookDelta(e.movementX,e.movementY); if(!dragLookActive)return; const dx=e.clientX-lastPointerX,dy=e.clientY-lastPointerY; lastPointerX=e.clientX; lastPointerY=e.clientY; applyLookDelta(dx,dy); });
-
-    function activeModeFilter(c){ return c.mode===(sceneMode==='city'?'city':'interior'); }
-    function clampToWorld(pos){ if(sceneMode==='city'){pos.x=THREE.MathUtils.clamp(pos.x,-HALF_WORLD+12,HALF_WORLD-12);pos.z=THREE.MathUtils.clamp(pos.z,-HALF_WORLD+12,HALF_WORLD-12);} else {pos.x=THREE.MathUtils.clamp(pos.x,-42,42);pos.z=THREE.MathUtils.clamp(pos.z,-42,42);} }
-    function pointHitsCollider(x,z,radius){ for(const c of colliders){ if(!activeModeFilter(c))continue; if(Math.abs(x-c.x)<c.halfX+radius&&Math.abs(z-c.z)<c.halfZ+radius)return c;} return null; }
-    function tryMoveObject(object,delta,radius,damageOnHit=0){ const ox=object.position.x,oz=object.position.z; object.position.x+=delta.x; clampToWorld(object.position); let hit=pointHitsCollider(object.position.x,object.position.z,radius); if(hit)object.position.x=ox; object.position.z+=delta.z; clampToWorld(object.position); const hitZ=pointHitsCollider(object.position.x,object.position.z,radius); if(hitZ)object.position.z=oz; const finalHit=hit||hitZ; if(finalHit)registerCollision(damageOnHit,finalHit.tag); return !finalHit; }
-    function registerCollision(damage=0,tag='structure'){ const now=performance.now(); gameState.lastCollisionTime=now; gameState.collisions++; if(damage>0&&now-(registerCollision.lastDamageAt||0)>550){gameState.health=Math.max(0,gameState.health-damage); registerCollision.lastDamageAt=now; showMessage(`Impact with ${tag} -${damage} health`);} }
-    function nearestCar(){ let best=null,dist=Infinity; if(sceneMode!=='city')return{car:null,dist:Infinity}; for(const car of cars){if(car.userData.occupied)continue; const d=player.position.distanceTo(car.position); if(d<dist){best=car;dist=d;}} return{car:best,dist}; }
-    function nearestInteractive(){ const pos=mode==='walking'?player.position:activeCar?.position; if(!pos)return null; let best=null,dist=Infinity; for(const z of interactiveZones){ if((z.sceneMode||'city')!==sceneMode)continue; const d=Math.hypot(pos.x-z.x,pos.z-z.z); if(d<dist&&d<z.radius){best=z;dist=d;} } return best; }
-    function nearestDoor(){ let best=null,dist=Infinity; for(const entry of interiorDoors){ const d=Math.hypot(player.position.x-entry.x,player.position.z-entry.z); if(d<dist){best=entry;dist=d;} } return best?{...best,dist}:null; }
-    function nearestMetro(){ let best=null,dist=Infinity; for(const m of metroEntrances){ const d=Math.hypot(player.position.x-m.x,player.position.z-m.z); if(d<dist){best=m;dist=d;} } return best?{...best,dist}:null; }
-    function toggleCarMode(){ if(sceneMode!=='city')return showMessage('No vehicles inside'); if(mode==='walking'){ const near=nearestCar(); if(near.car&&near.dist<6){activeCar=near.car;activeCar.userData.occupied=true;player.visible=false;mode='driving';yaw=activeCar.rotation.y;showMessage('Entered car');} else showMessage('Move closer to a car'); } else { const exitOffset=new THREE.Vector3(3.8,0,0).applyAxisAngle(new THREE.Vector3(0,1,0),activeCar.rotation.y); const candidate=activeCar.position.clone().add(exitOffset); if(pointHitsCollider(candidate.x,candidate.z,.8))return showMessage('Exit blocked'); player.position.copy(candidate); clampToWorld(player.position); player.visible=true; activeCar.userData.occupied=false; activeCar.userData.speed=0; activeCar=null; mode='walking'; showMessage('Exited car'); } }
-    function updateWalking(dt){ const speed=keys.ShiftLeft||keys.ShiftRight?(sceneMode==='city'?14:8):(sceneMode==='city'?7.2:4.8); const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)), r=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)), move=new THREE.Vector3(); if(keys.KeyW)move.add(f); if(keys.KeyS)move.sub(f); if(keys.KeyD)move.add(r); if(keys.KeyA)move.sub(r); if(move.lengthSq()>0){move.normalize(); const moved=tryMoveObject(player,move.clone().multiplyScalar(speed*dt),.75,0); if(moved){player.rotation.y=Math.atan2(move.x,move.z);body.position.y=1.15+Math.sin(performance.now()*.014)*.05;} playerVelocity.copy(move).multiplyScalar(moved?speed:0);} else {playerVelocity.multiplyScalar(.82);body.position.y=THREE.MathUtils.lerp(body.position.y,1.15,.12);} }
-    function updateDriving(dt){ const car=activeCar;if(!car)return; const boost=keys.ShiftLeft||keys.ShiftRight?1.65:1, accel=28*boost, reverseAccel=14, brake=42, maxSpeed=58*boost, maxReverse=-17; if(keys.KeyW)car.userData.speed+=accel*dt; if(keys.KeyS){if(car.userData.speed>.5)car.userData.speed-=brake*dt;else car.userData.speed-=reverseAccel*dt;} if(!keys.KeyW&&!keys.KeyS)car.userData.speed*=Math.pow(.08,dt); else car.userData.speed*=Math.pow(.42,dt); car.userData.speed=THREE.MathUtils.clamp(car.userData.speed,maxReverse,maxSpeed); const steerTarget=(keys.KeyA?1:0)+(keys.KeyD?-1:0); car.userData.steering=THREE.MathUtils.lerp(car.userData.steering,steerTarget,1-Math.pow(.005,dt)); const speedFactor=THREE.MathUtils.clamp(Math.abs(car.userData.speed)/24,.14,1); car.rotation.y+=car.userData.steering*2.25*speedFactor*dt*Math.sign(car.userData.speed||1); const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y)); const moved=tryMoveObject(car,f.multiplyScalar(car.userData.speed*dt),2.55,Math.abs(car.userData.speed)>22?3:1); if(!moved)car.userData.speed*=-.2; yaw=THREE.MathUtils.lerp(yaw,car.rotation.y,.08); }
-    function currentDistrict(){ if(sceneMode==='interior')return `${currentInterior} — Floor ${interiorFloor}`; const pos=mode==='walking'?player.position:activeCar?.position; const d=districts.find(r=>Math.abs(pos.x-r.x)<=r.halfX&&Math.abs(pos.z-r.z)<=r.halfZ); return d?d.name:'Waterfront / Crossing'; }
-    function updateCamera(dt){ const targetObj=mode==='walking'?player:activeCar;if(!targetObj)return; if(overviewCamera&&sceneMode==='city'){const desired=targetObj.position.clone().add(new THREE.Vector3(0,430,18));camera.position.lerp(desired,1-Math.pow(.002,dt));camera.lookAt(targetObj.position);return;} const target=targetObj.position.clone().add(new THREE.Vector3(0,sceneMode==='interior'?1.2:1.4,0)); const distance=mode==='walking'?(sceneMode==='interior'?7:10):(16+Math.abs(activeCar.userData.speed)*.18); const height=mode==='walking'?(sceneMode==='interior'?3.2:4.7):6.2; const off=new THREE.Vector3(-Math.sin(yaw)*distance,height+Math.sin(pitch)*5,-Math.cos(yaw)*distance); camera.position.lerp(target.clone().add(off),1-Math.pow(.001,dt)); camera.lookAt(target); }
-    function updateHUD(){ modeText.textContent=sceneMode==='interior'?'Interior walking':(mode==='walking'?'Walking':'Driving'); districtText.textContent=currentDistrict(); const speed=mode==='walking'?playerVelocity.length():Math.abs(activeCar?.userData.speed||0); speedText.textContent=speed.toFixed(1); healthText.textContent=Math.round(gameState.health); healthBar.style.width=`${gameState.health}%`; moneyText.textContent=gameState.money; wantedText.textContent='★'.repeat(gameState.wanted)+'☆'.repeat(5-gameState.wanted); if(sceneMode==='interior'){carText.textContent='No vehicles'; const action=nearestInteractive(); nearbyText.textContent=action?.type==='exit'?'Exit tower (E)':action?.type==='floor-up'?'Stairwell up (E)':action?.type==='floor-down'?'Stairwell down (E)':`Exploring ${currentInterior}`; } else {const near=nearestCar(); carText.textContent=near.car?`${near.dist.toFixed(1)}m ${near.dist<6?'(Press E)':''}`:'None'; const action=nearestInteractive(); const metro=nearestMetro(); if(action?.type==='tower-door')nearbyText.textContent=`Tower ${action.tower} entrance (E)`; else if(metro&&metro.dist<18)nearbyText.textContent=`Metro entrance: ${metro.name}`; else nearbyText.textContent='City grid';} if(!pointerLocked&&!pointerLockAvailable)lookText.textContent='Drag fallback'; }
-    function worldToMap(x,z){const s=miniMap.width;return{x:((x+HALF_WORLD)/WORLD_SIZE)*s,y:((z+HALF_WORLD)/WORLD_SIZE)*s};}
-    function drawTriangle(ctx,x,y,a,s,c){ctx.save();ctx.translate(x,y);ctx.rotate(-a);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,-s);ctx.lineTo(s*.65,s);ctx.lineTo(-s*.65,s);ctx.closePath();ctx.fill();ctx.restore();}
-    function updateMiniMap(){ const w=miniMap.width,h=miniMap.height; miniCtx.clearRect(0,0,w,h); miniCtx.fillStyle='rgba(3,15,22,.96)'; miniCtx.fillRect(0,0,w,h); if(sceneMode==='interior'){ miniCtx.fillStyle='rgba(30,45,55,.95)'; miniCtx.fillRect(18,18,w-36,h-36); miniCtx.strokeStyle='rgba(0,255,170,.45)'; miniCtx.strokeRect(18,18,w-36,h-36); miniCtx.fillStyle='#ffee55'; miniCtx.fillText(`${currentInterior} F${interiorFloor}`,16,14); const px=THREE.MathUtils.mapLinear(player.position.x,-45,45,18,w-18), py=THREE.MathUtils.mapLinear(player.position.z,-45,45,18,h-18); drawTriangle(miniCtx,px,py,player.rotation.y,6,'#00ffaa'); return; } miniCtx.fillStyle='rgba(22,60,38,.95)'; for(const d of districts){const p=worldToMap(d.x-d.halfX,d.z-d.halfZ),p2=worldToMap(d.x+d.halfX,d.z+d.halfZ);miniCtx.fillRect(p.x,p.y,p2.x-p.x,p2.y-p.y);} for(const r of roads){const p=worldToMap(r.x-r.w/2,r.z-r.d/2),p2=worldToMap(r.x+r.w/2,r.z+r.d/2);miniCtx.fillStyle=r.kind==='highway'?'rgba(255,238,85,.45)':'rgba(255,255,255,.2)';miniCtx.fillRect(p.x,p.y,p2.x-p.x,p2.y-p.y);} miniCtx.fillStyle='rgba(255,238,85,.75)'; [{x:-310,z:-130},{x:-190,z:-130}].forEach(t=>{const p=worldToMap(t.x,t.z);miniCtx.fillRect(p.x-3,p.y-3,6,6)}); miniCtx.fillStyle='rgba(0,255,170,.22)'; for(const m of metroEntrances){const p=worldToMap(m.x,m.z);miniCtx.beginPath();miniCtx.arc(p.x,p.y,3.2,0,Math.PI*2);miniCtx.fill();} for(const car of cars){const p=worldToMap(car.position.x,car.position.z);drawTriangle(miniCtx,p.x,p.y,car.rotation.y,car===activeCar?5:3.5,car===activeCar?'#ffee55':'#ff5577');} const target=mode==='walking'?player:activeCar,p=worldToMap(target.position.x,target.position.z);drawTriangle(miniCtx,p.x,p.y,mode==='walking'?player.rotation.y:activeCar.rotation.y,5.5,'#00ffaa'); miniCtx.strokeStyle='rgba(0,255,170,.5)'; miniCtx.lineWidth=2; miniCtx.strokeRect(1,1,w-2,h-2); }
-    function runSelfTests(){ const tests=[],assert=(n,c)=>tests.push({name:n,pass:Boolean(c)}); assert('THREE loaded',typeof THREE.Scene==='function'); assert('large world active',WORLD_SIZE>=2000); assert('twin tower doors created',interactiveZones.filter(z=>z.type==='tower-door').length===2); assert('metro entrances created',metroEntrances.length>=5); assert('enterable tower placeholders exist',interiorDoors.filter(d=>d.type==='tower').length===2); assert('cars created',cars.length>=8); assert('interior loader exists',typeof enterTower==='function'); assert('floor changing exists',typeof changeFloor==='function'); assert('minimap canvas exists',miniMap instanceof HTMLCanvasElement); assert('pointer lock guarded',typeof tryPointerLock==='function'); const failed=tests.filter(t=>!t.pass); console.table(tests); testBadge.textContent=failed.length?`Self-tests failed: ${failed.length}`:`Self-tests passed: ${tests.length}`; testBadge.style.color=failed.length?'#ffb3b3':'#baffea'; return{total:tests.length,failed}; }
-    function animate(){ requestAnimationFrame(animate); const dt=Math.min(clock.getDelta(),.05); if(mode==='walking')updateWalking(dt); else updateDriving(dt); updateCamera(dt); updateHUD(); updateMiniMap(); renderer.render(scene,camera); }
-    window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}); window.__AURORA_STAGE31_TESTS__=runSelfTests; runSelfTests(); showMessage('Stage 3.1 loaded — Twin Towers with explorable streamed interiors'); animate();
-  </script>
+<div id="boot-kernel"><div class="boot-card"><div class="boot-title">AURORA ONE</div><div class="boot-line">INITIALISING HTML CONTROL NEST</div><div class="boot-line">MOUNTING PASSPORT BUS • INVENTORY BUS • NPC BUS • ENEMY AI BUS • SAVE VAULT</div><div class="boot-bar"><div class="boot-fill"></div></div></div></div>
+<div id="aurora-control-nest">
+<header id="system-bus"><div class="logo">AURORA ONE</div><div class="nav active" data-panel="world">World</div><div class="nav" data-panel="avatar">Avatar</div><div class="nav" data-panel="inventory">Inventory</div><div class="nav" data-panel="skills">Skills</div><div class="nav" data-panel="forge">Forge</div><div class="nav" data-panel="debug">Nest</div><div class="wallet"><span>🪙 <b data-bind="gold"></b></span><span>🔷 <b data-bind="crystal"></b></span><span>⭐ <b data-bind="rep"></b></span></div></header>
+<main id="world-bus"><section id="world-renderer"><div class="ruins r1"></div><div class="ruins r2"></div><div class="ruins r3"></div><div class="ruins r4"></div><div class="fire f1"></div><div class="fire f2"></div><div class="fire f3"></div><div id="player-proxy"><div class="hero-head"></div><div class="hero-body"></div><div class="hero-core"></div><div class="hero-sword"></div></div><div class="enemy e1">Gremlin Scout<br/>Level 6<div class="hp"><i style="width:65%"></i></div></div><div class="enemy e2">Gremlin Brute<br/>Level 9<div class="hp"><i style="width:88%"></i></div></div><div class="enemy e3">Gremlin Shaman<br/>Level 8<div class="hp"><i style="width:75%"></i></div></div></section></main>
+<aside id="passport-bus"><section class="panel card bus-card"><div class="avatar-grid"><div class="portrait">🧑🏽‍🚀</div><div><div class="row"><b data-bind="playerName"></b><span>LEVEL <b data-bind="level"></b></span></div><div class="small">Active Role <span class="gold" data-bind="role"></span></div><div class="bar"><div class="fill hpfill" data-fill="hp"></div></div><div class="bar"><div class="fill xpfill" data-fill="xp"></div></div><div class="small">Next Level: <span data-bind="nextXp"></span></div></div></div></section><section class="panel card bus-card"><div class="title">Current Quest</div><div class="row"><b>The Shadow Coal</b><span data-bind="questText"></span></div><div class="small">Obtain 3 Void Coal Shards from Gremlin Camps. Return to the Forge Keeper before night rotation ends.</div><div class="bar"><div class="fill" data-fill="quest"></div></div><div class="row small"><span>Rewards</span><span>5,000 XP + Nightforge Recipe</span></div></section><section class="panel card bus-card" style="flex:1"><div class="title">World Chat / System Events</div><div id="event-log" class="small"></div></section></aside>
+<aside id="inventory-bus"><section class="panel card bus-card"><div class="title">Inventory Bus</div><div id="inventory-grid"></div></section><section class="panel card bus-card"><div class="title">Equipped Weapon</div><div class="weapon-grid"><div class="weapon-art">🗡️</div><div><div class="blue"><b data-bind="weaponName"></b></div><div class="gold small" data-bind="weaponClass"></div><div class="row"><span>Attack</span><b data-bind="atk"></b></div><div class="row small"><span>Fire Damage</span><span>+45</span></div><div class="row small"><span>Darkness Affinity</span><span>+35</span></div><div class="row small"><span>Gremlin Slayer</span><span data-bind="slayer"></span></div><div class="sockets"><div class="socket linked" data-action="socket">💎</div><div class="socket linked" data-action="socket">⚡</div><div class="socket" data-action="socket">🔮</div></div></div></div></section><section class="panel card bus-card"><div class="title">Avatar Stats</div><div class="row"><span>Strength</span><b data-bind="strength"></b></div><div class="row"><span>Agility</span><b data-bind="agility"></b></div><div class="row"><span>Intellect</span><b data-bind="intellect"></b></div><div class="row"><span>Endurance</span><b data-bind="endurance"></b></div><div class="row"><span>Luck</span><b data-bind="luck"></b></div></section></aside>
+<footer id="combat-bus"><section class="panel card bus-card"><div class="title">Skill Tree — Forge Knight</div><div id="skill-tree-layer"></div><div class="row small"><span>Skill Points Available</span><span class="blue" data-bind="skillPoints"></span></div></section><section class="panel card bus-card"><div class="title">Ability Bus</div><div id="ability-row"><div class="ability ready" data-action="ability" data-ability="Pulse Step">🌀</div><div class="ability ready" data-action="ability" data-ability="Blade Strike">🗡️</div><div class="ability ready" data-action="ability" data-ability="Fire Socket">🔥</div><div class="ability" data-action="ability" data-ability="Guard Shell">🛡️</div><div class="ability ready" data-action="ability" data-ability="Forge Inspect">⚒️</div><div class="ability" data-action="ability" data-ability="Scout Eye">👁️</div><div class="ability" data-action="ability" data-ability="Wolf Mark">🐺</div></div><div class="small" style="margin-top:10px">Nested bus actions: abilities update state, inventory talks to forge, NPC dialogue reads world context.</div></section><section class="panel card bus-card"><div class="title">World Map</div><div id="map-canvas"><span class="dot you"></span><span class="dot forge"></span><span class="dot camp"></span><span class="dot npc"></span></div><div class="small">You • Forge • Enemy Camp • NPC</div></section></footer>
+<section id="npc-dialogue-bus" class="panel"></section><section id="forge-bus" class="panel"></section><section id="quest-bus" class="panel"><div class="small"><span class="blue">LONDON RUIN YARD</span> • NIGHT • <span data-bind="time"></span></div></section><section id="simulation-bus" class="panel">Forge Keeper nearby: “You have rare coal. I can awaken the blade memory.”</section><section id="vault-bus" class="panel"><div class="title">Save Vault</div><div class="small">Autosave: <span data-bind="saveState"></span></div><button class="btn" data-action="save">Save JSON</button><button class="btn" data-action="load" style="margin-top:6px">Load JSON</button></section><section id="nest-debug" class="panel"><div class="title">Nest Kernel Debug</div><pre id="debug-output"></pre></section><div id="toast"></div></div>
+<script>
+const AuroraKernel={passport:{playerName:"MR LEWIS",level:18,role:"Forge Knight",hp:100,maxHp:100,xp:42,nextXp:"5,550 XP",gold:12450,crystal:3200,rep:150,skillPoints:2},avatar:{stats:{strength:68,agility:42,intellect:31,endurance:55,luck:29}},inventory:{items:[{id:"blade",icon:"🗡️",qty:12,type:"weapon"},{id:"ore",icon:"🪨",qty:8,type:"material"},{id:"crystal",icon:"💎",qty:3,type:"module"},{id:"mana",icon:"🔷",qty:47,type:"currency"},{id:"void_coal",icon:"🖤",qty:2,type:"rare"},{id:"fire_core",icon:"🔥",qty:3,type:"module"},{id:"boots",icon:"🥾",qty:1,type:"gear"},{id:"shield",icon:"🛡️",qty:1,type:"gear"},{id:"ice_core",icon:"🧊",qty:2,type:"module"},{id:"wood",icon:"🪵",qty:11,type:"material"},{id:"potion",icon:"🧪",qty:5,type:"consumable"},{id:"recipe",icon:"📜",qty:2,type:"recipe"},{id:"hammer",icon:"⚒️",qty:1,type:"tool"},{id:"scale",icon:"🐉",qty:0,type:"rare"},{id:"coin",icon:"🪙",qty:12450,type:"currency"}]},weapons:{equipped:{id:"nightforge_blade",name:"Nightforge Blade +7",class:"Legendary Great Sword",atk:256,slayer:"+18%",memory:["gremlin camp","void coal","night battle"]}},skills:{nodes:[{id:"combat",x:22,y:50,unlocked:true,label:"Combat"},{id:"socket",x:75,y:28,unlocked:true,label:"Socketing"},{id:"rareForge",x:132,y:48,unlocked:true,label:"Rare Forge"},{id:"survival",x:73,y:88,unlocked:false,label:"Survival"},{id:"campBreaker",x:190,y:38,unlocked:false,label:"Camp Breaker"},{id:"worldMemory",x:222,y:86,unlocked:false,label:"World Memory"},{id:"forge",x:35,y:92,unlocked:true,label:"Forge"},{id:"materialRead",x:142,y:92,unlocked:true,label:"Material Read"}],edges:[[0,1],[1,2],[1,3],[2,4],[3,5],[0,6],[6,7],[7,2]]},forge:{recipes:[{id:"campbreaker_memory",name:"Campbreaker Memory",requires:[["void_coal",2],["ore",3]],output:"Nightforge Blade +8",effect:"+18 attack, +world-recognised camp trait"},{id:"shadow_socket",name:"Shadow Socket",requires:[["void_coal",1],["crystal",1]],output:"Shadow Lens Module",effect:"+darkness affinity"}]},quests:{shadowCoal:{current:2,total:3,complete:false}},worldState:{zone:"London Ruin Yard",time:"22:47",campLevel:2,night:true},saveVault:{saveState:"Ready"},logs:["Kael_98: anyone up for Gremlin Camp raid?","IronWolf: I’m in.","LunaCraft: need 1 more.","System: Gremlin Camp at North Ruins upgraded to Level 2.","Forge Keeper: rare material detected.","Guide Warden: Night cycle increases ambush behaviour."]};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];function item(id){return AuroraKernel.inventory.items.find(x=>x.id===id)}function toast(t){const el=$("#toast");el.textContent=t;el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.opacity=0,1600)}function canCraft(r){return r.requires.every(([id,q])=>(item(id)?.qty||0)>=q)}function spend(r){r.requires.forEach(([id,q])=>item(id).qty-=q)}
+function bind(){const p=AuroraKernel.passport,w=AuroraKernel.weapons.equipped,s=AuroraKernel.avatar.stats,q=AuroraKernel.quests.shadowCoal,v=AuroraKernel.saveVault;const data={playerName:p.playerName,level:p.level,role:p.role,nextXp:p.nextXp,gold:p.gold,crystal:p.crystal,rep:p.rep,skillPoints:p.skillPoints,weaponName:w.name,weaponClass:w.class,atk:w.atk,slayer:w.slayer,strength:s.strength,agility:s.agility,intellect:s.intellect,endurance:s.endurance,luck:s.luck,questText:q.complete?"Complete":q.current+" / "+q.total,time:AuroraKernel.worldState.time,saveState:v.saveState};$$('[data-bind]').forEach(el=>{el.textContent=data[el.dataset.bind]??""});$('[data-fill="hp"]').style.width=(p.hp/p.maxHp*100)+"%";$('[data-fill="xp"]').style.width=p.xp+"%";$('[data-fill="quest"]').style.width=(q.current/q.total*100)+"%";renderInventory();renderSkills();renderLogs();debug()}
+function renderInventory(){$("#inventory-grid").innerHTML=AuroraKernel.inventory.items.map(x=>`<div class="slot" data-item="${x.id}" title="${x.id} / ${x.type}">${x.icon}<b>${x.qty}</b></div>`).join("")}function renderLogs(){$("#event-log").innerHTML=AuroraKernel.logs.map((l,i)=>`<div>${i===3?'<span class="gold">[World]</span>':'<span class="blue">[World]</span>'} ${l}</div>`).join("")}function renderSkills(){const layer=$("#skill-tree-layer");layer.innerHTML="";const n=AuroraKernel.skills.nodes;AuroraKernel.skills.edges.forEach(([a,b])=>{const A=n[a],B=n[b],ax=A.x+13,ay=A.y+13,bx=B.x+13,by=B.y+13,dx=bx-ax,dy=by-ay;const line=document.createElement("div");line.className="skill-line";line.style.left=ax+"px";line.style.top=ay+"px";line.style.width=Math.hypot(dx,dy)+"px";line.style.transform=`rotate(${Math.atan2(dy,dx)}rad)`;layer.appendChild(line)});n.forEach(node=>{const d=document.createElement("div");d.className="node "+(node.unlocked?"on":"lock");d.style.left=node.x+"px";d.style.top=node.y+"px";d.title=node.label;d.dataset.skill=node.id;layer.appendChild(d)})}
+function openNPC(){const c=item("void_coal")?.qty||0;$("#npc-dialogue-bus").style.display="block";$("#npc-dialogue-bus").innerHTML=`<div class="speaker">Forge Keeper</div><div>You are carrying ${c} Void Coal shard(s). This material is not just fuel. It carries battle memory from the Gremlin Camp. I can read it, bind it to your blade, and evolve the weapon state.</div><div class="choices"><button class="btn" data-dialog="forge">Open Forge Bus</button><button class="btn" data-dialog="explain">Explain Weapon Memory</button><button class="btn" data-dialog="close">Close</button></div>`}function closeNPC(){$("#npc-dialogue-bus").style.display="none"}function openForge(){const box=$("#forge-bus");box.style.display="block";box.innerHTML=`<div class="title">Forge Bus — Rare Contract System</div><div class="recipe-grid">${AuroraKernel.forge.recipes.map(r=>`<div class="recipe"><b class="gold">${r.name}</b><div class="small">Requires: ${r.requires.map(([id,q])=>`${q} ${id}`).join(", ")}</div><div class="small">Output: ${r.output}</div><div class="small blue">${r.effect}</div><button class="btn" data-craft="${r.id}" style="margin-top:8px">${canCraft(r)?"Craft":"Missing Materials"}</button></div>`).join("")}</div><div class="choices"><button class="btn" data-dialog="closeForge">Close Forge</button></div>`}function closeForge(){$("#forge-bus").style.display="none"}
+function craft(id){const r=AuroraKernel.forge.recipes.find(x=>x.id===id);if(!r||!canCraft(r)){toast("Missing materials");return}spend(r);AuroraKernel.weapons.equipped.name=r.output;if(id==="campbreaker_memory"){AuroraKernel.weapons.equipped.atk+=18;AuroraKernel.weapons.equipped.slayer="+28%";AuroraKernel.quests.shadowCoal.current=3;AuroraKernel.quests.shadowCoal.complete=true;AuroraKernel.passport.rep+=7;AuroraKernel.passport.skillPoints+=1;AuroraKernel.logs.unshift("Forge Keeper forged Campbreaker Memory into the blade.")}else{AuroraKernel.logs.unshift("Shadow Lens Module created and added to inventory.");item("crystal").qty+=1}toast("Crafted: "+r.output);bind();openForge()}
+function ability(name){AuroraKernel.logs.unshift("Ability activated: "+name);if(name==="Blade Strike"){AuroraKernel.passport.xp=Math.min(100,AuroraKernel.passport.xp+6)}if(name==="Forge Inspect"){openNPC()}toast(name+" activated");bind()}function unlockSkill(id){const n=AuroraKernel.skills.nodes.find(x=>x.id===id);if(!n||n.unlocked)return;if(AuroraKernel.passport.skillPoints<=0){toast("No skill points available");return}n.unlocked=true;AuroraKernel.passport.skillPoints--;AuroraKernel.logs.unshift("Skill unlocked: "+n.label);toast("Unlocked: "+n.label);bind()}function saveJSON(){localStorage.setItem("aurora-one-control-nest-v03",JSON.stringify(AuroraKernel));AuroraKernel.saveVault.saveState="Saved locally";toast("Save vault written");bind()}function loadJSON(){const raw=localStorage.getItem("aurora-one-control-nest-v03");if(!raw){toast("No local save found");return}Object.assign(AuroraKernel,JSON.parse(raw));toast("Save vault loaded");bind()}function debug(){$("#debug-output").textContent=JSON.stringify(AuroraKernel,null,2)}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-action]");if(a){if(a.dataset.action==="ability")ability(a.dataset.ability);if(a.dataset.action==="socket")toast("Socket bus: linked materia-style modules combine effects.");if(a.dataset.action==="save")saveJSON();if(a.dataset.action==="load")loadJSON()}const it=e.target.closest("[data-item]");if(it)toast("Inventory bus inspected: "+it.dataset.item);const d=e.target.closest("[data-dialog]");if(d){if(d.dataset.dialog==="close")closeNPC();if(d.dataset.dialog==="forge")openForge();if(d.dataset.dialog==="explain"){$("#npc-dialogue-bus").innerHTML='<div class="speaker">Forge Keeper</div><div>Weapon memory = battle history + rare material + socket modules. The blade becomes a state object other worlds can recognise.</div><div class="choices"><button class="btn" data-dialog="forge">Open Forge</button><button class="btn" data-dialog="close">Close</button></div>'}if(d.dataset.dialog==="closeForge")closeForge()}const c=e.target.closest("[data-craft]");if(c)craft(c.dataset.craft);const sk=e.target.closest("[data-skill]");if(sk)unlockSkill(sk.dataset.skill);const nav=e.target.closest(".nav");if(nav){$$('.nav').forEach(n=>n.classList.remove('active'));nav.classList.add('active');if(nav.dataset.panel==="forge")openForge();if(nav.dataset.panel==="debug"){$("#nest-debug").style.display=$("#nest-debug").style.display==="block"?"none":"block";debug()}if(nav.dataset.panel==="world"){closeForge();closeNPC()}}});$("#simulation-bus").addEventListener("click",openNPC);setTimeout(()=>$("#boot-kernel").classList.add("boot-hidden"),2500);setTimeout(openNPC,2900);bind();
+</script>
 </body>
 </html>
