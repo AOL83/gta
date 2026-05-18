@@ -2,230 +2,198 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aurora Home Node Zero | Unreal Bay</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Aurora Builder Dock Zero</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#050912;color:#eaf7ff;font-family:Arial,Helvetica,sans-serif;overflow:hidden}
-:root{--gold:#d4af37;--cyan:#00ffc8;--blue:#60a5fa;--red:#ff4b67;--panel:rgba(7,13,24,.82)}
-#app{position:fixed;inset:0;display:grid;grid-template-rows:58px 1fr;background:radial-gradient(circle at 30% 20%,#182846,#050912 65%)}
-nav{height:58px;display:flex;align-items:center;gap:12px;padding:0 16px;background:rgba(4,8,16,.92);border-bottom:1px solid rgba(212,175,55,.25);backdrop-filter:blur(12px)}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030711;color:#eaf7ff;font-family:Arial,Helvetica,sans-serif;user-select:none}
+:root{--gold:#d4af37;--cyan:#00ffc8;--blue:#60a5fa;--red:#ff4b67;--panel:rgba(5,10,18,.78);--line:rgba(0,255,200,.25)}
+canvas{display:block}
+button,input,select,textarea{font:inherit}
+#app{position:fixed;inset:0;display:grid;grid-template-rows:58px 1fr;background:radial-gradient(circle at 30% 20%,#12213d,#030711 64%)}
+#topbar{height:58px;display:flex;align-items:center;gap:12px;padding:0 14px;background:rgba(4,8,16,.92);border-bottom:1px solid rgba(212,175,55,.28);z-index:50;backdrop-filter:blur(12px)}
 .logo{font-weight:900;font-size:18px;background:linear-gradient(135deg,var(--gold),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
-button{font:inherit;cursor:pointer}
-.navbtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#dbeafe;border-radius:999px;padding:8px 12px}
-.navbtn.active,.navbtn:hover{border-color:var(--gold);color:var(--gold)}
-#main{position:relative;overflow:hidden}
-.page{display:none;position:absolute;inset:0;padding:16px;overflow:auto}
+.nav{background:rgba(255,255,255,.04);color:#dbeafe;border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:8px 12px;cursor:pointer}
+.nav.active,.nav:hover{border-color:var(--gold);color:var(--gold)}
+#fullscreen{margin-left:auto}
+.page{position:relative;display:none;min-height:0;overflow:hidden}
 .page.active{display:block}
-.panel{background:var(--panel);border:1px solid rgba(0,255,200,.22);box-shadow:0 0 24px rgba(0,255,200,.08);border-radius:16px;backdrop-filter:blur(12px)}
-.grid{display:grid;grid-template-columns:330px 1fr 360px;gap:14px;height:100%}
-.card{padding:14px}
-.title{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);font-weight:800;margin-bottom:10px}
-.small{font-size:13px;line-height:1.45;color:#b9c9d7}
-.row{display:flex;justify-content:space-between;gap:10px;margin:6px 0;font-size:13px}
-.gold{color:var(--gold)}.cyan{color:var(--cyan)}.red{color:var(--red)}.blue{color:var(--blue)}
-.status{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:var(--red);box-shadow:0 0 8px var(--red)}
-.status.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-.viewport{height:100%;min-height:540px;position:relative;overflow:hidden;background:
-linear-gradient(90deg,rgba(0,0,0,.65),rgba(0,0,0,.05),rgba(0,0,0,.7)),
-radial-gradient(circle at 50% 60%,rgba(0,255,200,.16),transparent 20%),
-linear-gradient(180deg,#0a1426,#05070c 70%)}
-.mockworld{position:absolute;inset:0;perspective:900px}
-.floor{position:absolute;left:8%;right:8%;bottom:-9%;height:54%;background:linear-gradient(90deg,#111822,#0a0e14);transform:rotateX(64deg);border:1px solid rgba(0,255,200,.15)}
-.room{position:absolute;left:14%;top:12%;width:38%;height:52%;border:1px solid rgba(212,175,55,.28);background:linear-gradient(135deg,rgba(60,80,110,.25),rgba(10,15,26,.65));box-shadow:inset 0 0 60px rgba(0,0,0,.5)}
-.window{position:absolute;left:22%;top:20%;width:18%;height:20%;background:linear-gradient(#15375a,#08101b);border:1px solid rgba(96,165,250,.5);box-shadow:0 0 25px rgba(96,165,250,.25)}
-.door{position:absolute;left:48%;top:40%;width:10%;height:24%;background:#05080d;border:1px solid var(--cyan);box-shadow:0 0 20px rgba(0,255,200,.35)}
-.street{position:absolute;right:7%;bottom:12%;width:40%;height:28%;background:linear-gradient(90deg,#0b1118,#171e25);transform:skewX(-12deg);border:1px solid rgba(255,255,255,.12)}
-.car{position:absolute;right:21%;bottom:25%;width:100px;height:46px;background:linear-gradient(135deg,#164c74,#07101b);border:1px solid var(--blue);box-shadow:0 0 20px rgba(96,165,250,.25);border-radius:10px}
-.portal{position:absolute;right:10%;top:18%;width:110px;height:160px;border-radius:50%;border:5px solid var(--cyan);box-shadow:0 0 35px rgba(0,255,200,.6)}
-.avatar{position:absolute;left:44%;bottom:28%;width:32px;height:74px;background:linear-gradient(#00ffc8,#0b6b58);border-radius:16px 16px 8px 8px;box-shadow:0 0 18px rgba(0,255,200,.6)}
-.hudtag{position:absolute;left:18px;top:18px;padding:8px 12px;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid rgba(0,255,200,.25);font-size:12px}
+.panel{background:linear-gradient(180deg,var(--panel),rgba(0,4,10,.88));border:1px solid var(--line);box-shadow:0 0 22px rgba(0,255,200,.1);border-radius:14px;backdrop-filter:blur(10px)}
+.card{padding:12px}
+.title{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);font-weight:800;margin-bottom:9px}
+.small{font-size:12px;line-height:1.45;color:#b9c9d7}
+.row{display:flex;justify-content:space-between;gap:10px;margin:5px 0;font-size:13px}
+.gold{color:var(--gold)}.cyan{color:var(--cyan)}.blue{color:var(--blue)}.red{color:var(--red)}
+#dockPage{height:100%}
+#hudLeft,#hudRight,#bottomBar,#hint,#dialogue,#toast,#radar{position:absolute;z-index:30}
+#hudLeft{top:12px;left:12px;width:300px;display:flex;flex-direction:column;gap:10px}
+#hudRight{top:12px;right:12px;width:340px;display:flex;flex-direction:column;gap:10px}
+#bottomBar{left:324px;right:366px;bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.bar{height:8px;background:rgba(255,255,255,.13);border-radius:999px;overflow:hidden;margin:6px 0}
+.fill{height:100%;width:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:999px}.hp .fill{background:linear-gradient(90deg,#ff3155,#ffc66e)}
+#inventory{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.slot{height:42px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative}.slot b{position:absolute;right:4px;bottom:2px;font-size:10px}
+#hint{left:50%;bottom:90px;transform:translateX(-50%);display:none;padding:9px 14px;border-radius:999px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.18);font-size:13px}
+#dialogue{left:50%;bottom:126px;transform:translateX(-50%);width:min(760px,90vw);padding:14px;display:none}.speaker{font-weight:800;color:var(--gold);margin-bottom:7px}.choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.choice{background:rgba(0,255,200,.09);color:#eaffff;border:1px solid rgba(0,255,200,.35);border-radius:999px;padding:8px 12px;cursor:pointer}.choice:hover{background:rgba(0,255,200,.19)}
+#toast{top:12px;left:50%;transform:translateX(-50%);opacity:0;transition:.25s;padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.74);border:1px solid rgba(212,175,55,.45)}
+#radar{right:12px;bottom:12px;width:210px;padding:10px}#radarCanvas{width:188px;height:188px;border-radius:50%;background:#031016;border:1px solid rgba(0,255,200,.35)}
+#metaPage,#architectPage{padding:16px;overflow:auto;height:100%}.grid{display:grid;grid-template-columns:330px 1fr 360px;gap:14px;height:100%}.viewport{height:100%;min-height:560px;overflow:hidden}.log{height:220px;overflow:auto;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;font-family:monospace;font-size:12px;white-space:pre-wrap}textarea,input,select{width:100%;background:#06101a;color:#eaf7ff;border:1px solid rgba(0,255,200,.25);border-radius:10px;padding:10px}textarea{height:150px}.action{border:1px solid rgba(0,255,200,.35);background:rgba(0,255,200,.08);color:#eaffff;border-radius:10px;padding:9px 11px;margin:4px 4px 4px 0;cursor:pointer}
 iframe{width:100%;height:100%;border:0;background:#000;border-radius:14px}
-.action{border:1px solid rgba(0,255,200,.35);background:rgba(0,255,200,.08);color:#eaffff;border-radius:10px;padding:9px 11px;margin:4px 4px 4px 0}
-.action:hover{background:rgba(0,255,200,.18)}
-textarea,input{width:100%;background:#050912;color:#eaf7ff;border:1px solid rgba(0,255,200,.24);border-radius:10px;padding:10px}
-textarea{height:130px;resize:vertical}
-.log{height:180px;overflow:auto;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;font-family:monospace;font-size:12px;white-space:pre-wrap}
-.nodeList{display:grid;gap:8px}
-.node{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px;background:rgba(255,255,255,.04)}
-@media(max-width:1000px){.grid{grid-template-columns:1fr;height:auto}.viewport{height:520px}.page{overflow:auto}}
+.badge{display:inline-flex;align-items:center;gap:6px}.led{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red)}.led.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+@media(max-width:1000px){#hudLeft,#hudRight{width:240px}#bottomBar{left:10px;right:10px;grid-template-columns:1fr}#radar{display:none}.grid{grid-template-columns:1fr;height:auto}.viewport{height:560px}.nav{white-space:nowrap}#topbar{overflow-x:auto}}
 </style>
 </head>
 <body>
 <div id="app">
-<nav>
-<div class="logo">⚡ Aurora Home Node Zero</div>
-<button class="navbtn active" data-page="home">Console</button>
-<button class="navbtn" data-page="unreal">Unreal Bay</button>
-<button class="navbtn" data-page="architect">AI Architect</button>
-<button class="navbtn" data-page="manifest">Manifest</button>
-<button class="navbtn" id="fullscreen" style="margin-left:auto">Fullscreen</button>
+<nav id="topbar">
+<div class="logo">⚡ Aurora Builder Dock Zero</div>
+<button class="nav active" data-page="dockPage">Builder Dock</button>
+<button class="nav" data-page="metaPage">Meta-Computer</button>
+<button class="nav" data-page="architectPage">AI Architect</button>
+<button id="fullscreen" class="nav">Fullscreen</button>
 </nav>
-<main id="main">
-<section id="home" class="page active">
-<div class="grid">
-<aside class="panel card">
-<div class="title">Passport</div>
-<div class="row"><b>Operator</b><span class="gold">Mr Lewis</span></div>
-<div class="row"><span>Spawn</span><b>Apartment Node Zero</b></div>
-<div class="row"><span>Project</span><b>Aurora Ops Hub</b></div>
-<div class="row"><span>State</span><b id="saveState">Ready</b></div>
-<div class="title" style="margin-top:16px">First playable loop</div>
-<div class="small">Wake in apartment. Walk to corridor. Exit to courtyard. Enter garage. Drive test vehicle. Talk to concierge. Enter combat pad. Return to builder bay. Save node.</div>
-</aside>
-<section class="panel viewport">
-<div class="mockworld">
-<div class="floor"></div>
-<div class="room"></div>
-<div class="window"></div>
-<div class="door"></div>
-<div class="street"></div>
-<div class="car"></div>
-<div class="portal"></div>
-<div class="avatar"></div>
-<div class="hudtag">Mock viewport: Home Node Zero layout target</div>
+
+<section id="dockPage" class="page active">
+<div id="hudLeft">
+<div class="panel card"><div class="title">Passport</div><div class="row"><b>Operator Lewis</b><span class="gold">Builder Mode</span></div><div class="bar hp"><div id="hpFill" class="fill"></div></div><div class="row small"><span>Health</span><span id="hpText">100/100</span></div><div class="bar"><div id="xpFill" class="fill" style="width:20%"></div></div><div class="row small"><span>Build XP</span><span id="xpText">20/100</span></div></div>
+<div class="panel card"><div class="title">Current Objective</div><div class="small">Start inside Builder Dock Zero. Test movement, vehicle entry, NPC command translation, enemy bot zone, garage, outside strip, save state, and Unreal Bay handoff.</div></div>
+<div class="panel card"><div class="title">World Events</div><div id="eventLog" class="small" style="height:130px;overflow:hidden"></div></div>
 </div>
+
+<div id="hudRight">
+<div class="panel card"><div class="title">Inventory</div><div id="inventory"></div></div>
+<div class="panel card"><div class="title">Builder Tool</div><div class="row"><b id="toolName">Reality Spanner</b><span>Power <b id="toolPower">18</b></span></div><div class="small">Use F near Architect Terminal. Use E near vehicle, NPC, portal, or forge bench.</div></div>
+<div class="panel card"><div class="title">Runtime State</div><div class="row"><span>Mode</span><b id="modeText">Walking</b></div><div class="row"><span>Nearby</span><b id="nearbyText">None</b></div><div class="row"><span>Save</span><b id="saveText">Ready</b></div></div>
+</div>
+
+<div id="bottomBar">
+<div class="panel card"><div class="title">Controls</div><div class="small">WASD move/drive. Mouse drag look. E interact. F architect/forge. 1 attack/test tool. Shift sprint/boost.</div></div>
+<div class="panel card"><div class="title">Dock Zones</div><div class="small">Builder terminal, Unreal Bay door, garage, outside test strip, combat pad, portal placeholder.</div></div>
+<div class="panel card"><div class="title">Build Rule</div><div class="small">Aurora contains the workshop. Unreal is the holodeck bay mounted inside the meta-computer.</div></div>
+</div>
+
+<div id="radar" class="panel"><div class="title">Mission Radar</div><canvas id="radarCanvas" width="188" height="188"></canvas><div class="small">cyan you, red bots, gold tools, blue NPC, white vehicle</div></div>
+<div id="hint"></div><div id="dialogue" class="panel"></div><div id="toast"></div>
 </section>
-<aside class="panel card">
-<div class="title">Node map</div>
-<div class="nodeList">
-<div class="node"><b>Node Zero</b><br><span class="small">Apartment spawn, passport sync, equipment locker.</span></div>
-<div class="node"><b>Node One</b><br><span class="small">Small outside courtyard, movement and collision test.</span></div>
-<div class="node"><b>Node Two</b><br><span class="small">Vehicle garage, enter and drive test.</span></div>
-<div class="node"><b>Node Three</b><br><span class="small">Combat pad, enemy behaviour test.</span></div>
-<div class="node"><b>Node Four</b><br><span class="small">Builder bay, Unreal editing and AI commands.</span></div>
-</div>
-</aside>
+
+<section id="metaPage" class="page">
+<div class="grid">
+<aside class="panel card"><div class="title">Meta-Computer Runtime Bay</div><div class="badge"><span id="bridgeLed" class="led"></span><span id="bridgeText">Bridge offline</span></div><br><br><button class="action" onclick="setBridge(true)">Connect Bridge</button><button class="action" onclick="setBridge(false)">Disconnect</button><button class="action" onclick="mountPreset('babylon')">Mount Babylon Sandbox</button><button class="action" onclick="mountPreset('stackblitz')">Mount StackBlitz</button><button class="action" onclick="mountPreset('v86')">Mount v86 Alpine</button><div class="title" style="margin-top:14px">Unreal Runtime URL</div><input id="runtimeUrl" placeholder="Paste Unreal Pixel Streaming, remote workstation, or local bridge URL"><button class="action" onclick="mountRuntime()">Mount Unreal Bay</button><button class="action" onclick="resetViewport()">Reset Viewport</button></aside>
+<section class="panel viewport"><iframe id="runtimeFrame" srcdoc="<html><body style='margin:0;background:#05070c;color:#eaf7ff;font-family:Arial;display:grid;place-items:center;height:100vh'><div style='text-align:center;max-width:700px;padding:28px'><h1>Aurora Meta-Computer</h1><p>This is the active runtime bay. Mount a real browser runtime, coding tool, v86 system, or Unreal-accessible endpoint here.</p></div></body></html>"></iframe></section>
+<aside class="panel card"><div class="title">Runtime Log</div><div id="runtimeLog" class="log">Meta-computer ready.</div></aside>
 </div>
 </section>
 
-<section id="unreal" class="page">
+<section id="architectPage" class="page">
 <div class="grid">
-<aside class="panel card">
-<div class="title">Unreal Bay Controls</div>
-<div class="small"><span id="bridgeLed" class="status"></span><span id="bridgeText">Bridge offline</span></div>
-<button class="action" onclick="setBridge(true)">Connect Bridge</button>
-<button class="action" onclick="setBridge(false)">Disconnect</button>
-<button class="action" onclick="log('Command: open AuroraHomeNodeZero project')">Open Project</button>
-<button class="action" onclick="log('Command: run Play-In-Editor preview')">Run Preview</button>
-<button class="action" onclick="log('Command: package playable build')">Package Build</button>
-<button class="action" onclick="log('Command: push shell state to GitHub')">Push GitHub</button>
-<div class="title" style="margin-top:14px">Expected Unreal location</div>
-<div class="small">Project folder: Unreal/AuroraHomeNodeZero<br>Map: Maps/Home_Node_Zero<br>Mode: Third-person plus vehicle test.</div>
-</aside>
-<section class="panel viewport">
-<iframe id="unrealFrame" srcdoc="
-<html><body style='margin:0;background:#05070c;color:#eaf7ff;font-family:Arial;display:grid;place-items:center;height:100vh'>
-<div style='text-align:center;max-width:680px;padding:30px'>
-<h1>Unreal Bay Viewport</h1>
-<p>This panel is the docking bay. When a Pixel Streaming URL or remote workstation URL is available, paste it into the field on the right and press Mount Viewport.</p>
-<p>Until then, this page acts as the controller and project manifest for the Unreal build.</p>
-</div></body></html>"></iframe>
-</section>
-<aside class="panel card">
-<div class="title">Mount runtime</div>
-<input id="runtimeUrl" placeholder="Paste Pixel Streaming or workstation URL">
-<button class="action" onclick="mountRuntime()">Mount Viewport</button>
-<button class="action" onclick="resetViewport()">Reset Viewport</button>
-<div class="title" style="margin-top:14px">Build log</div>
-<div id="log" class="log">Aurora Unreal Bay ready.</div>
-</aside>
+<aside class="panel card"><div class="title">Quick Builder Request</div>
+<select id="genre"><option>Open-world builder dock</option><option>RPG hub</option><option>Shooter test arena</option><option>Racing garage</option><option>Hybrid console world</option></select><br><br>
+<select id="environment"><option>Military builder dock</option><option>Futuristic city block</option><option>Industrial garage</option><option>Apartment spawn</option><option>Vault workshop</option></select><br><br>
+<select id="scale"><option>Room plus outside strip</option><option>Small block</option><option>District shell</option></select><br><br>
+<textarea id="prompt">Build Builder Dock Zero: enclosed workshop, Unreal Bay terminal, garage, outside test strip, one NPC concierge, one enemy bot zone, one vehicle, one portal placeholder, mission radar, save station.</textarea>
+<button class="action" onclick="makePlan()">Generate Unreal Build Packet</button><button class="action" onclick="copyPacket()">Copy Packet</button></aside>
+<section class="panel card"><div class="title">Unreal Command Packet</div><div id="packet" class="log" style="height:calc(100vh - 130px)">No packet generated.</div></section>
+<aside class="panel card"><div class="title">How this is used</div><div class="small">The user answers simple choices. Aurora compresses those choices into a structured packet that can be handed to the Unreal Bay, AI agent, Python editor script, Blueprint workflow, or human builder. The point is speed: get a blank bounded template loaded first, decorate and refine second.</div></aside>
 </div>
 </section>
+</div>
 
-<section id="architect" class="page">
-<div class="grid">
-<aside class="panel card">
-<div class="title">Architect Command</div>
-<textarea id="prompt">Build the starter apartment, one corridor exit, one courtyard, one garage, one combat pad, one concierge NPC, and one portal placeholder.</textarea>
-<button class="action" onclick="architect()">Generate Build Tasks</button>
-<button class="action" onclick="savePlan()">Save Plan</button>
-</aside>
-<section class="panel card">
-<div class="title">Generated Task Board</div>
-<div id="tasks" class="log" style="height:calc(100vh - 140px)">No tasks generated yet.</div>
-</section>
-<aside class="panel card">
-<div class="title">Purpose</div>
-<div class="small">This is not pretending Unreal is already inside the file. This is the nested control bay that mounts Unreal, controls the project, records the plan, and keeps the user inside Aurora while the real Unreal environment is built and tested.</div>
-</aside>
-</div>
-</section>
+<script type="module">
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
-<section id="manifest" class="page">
-<div class="panel card" style="max-width:1100px;margin:auto">
-<div class="title">Project Manifest</div>
-<div id="manifestText" class="log" style="height:70vh"></div>
-</div>
-</section>
-</main>
-</div>
-<script>
-const manifest={
-name:"Aurora Home Node Zero",
-version:"0.1",
-outer_shell:"GitHub Pages index.html",
-inner_bay:"Meta-computer Unreal Bay",
-unreal_project:"Unreal/AuroraHomeNodeZero",
-first_map:"Maps/Home_Node_Zero",
-nodes:[
-{id:"node_0",name:"Apartment Spawn",purpose:"login, passport, equipment"},
-{id:"node_1",name:"Courtyard",purpose:"movement, camera, collision"},
-{id:"node_2",name:"Garage",purpose:"vehicle enter, drive, exit"},
-{id:"node_3",name:"Combat Pad",purpose:"enemy test, loot test"},
-{id:"node_4",name:"Builder Bay",purpose:"Unreal edit and AI architect commands"}
-],
-acceptance_test:[
-"Open GitHub page",
-"Enter Unreal Bay",
-"Mount Unreal viewport or workstation",
-"Open Home Node Zero",
-"Press Play",
-"Walk around apartment",
-"Exit to courtyard",
-"Enter vehicle",
-"Drive test loop",
-"Talk to NPC",
-"Fight one enemy",
-"Return to builder mode",
-"Save node state"
-]
-};
-function showPage(id){
-document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
-}
-document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
-document.getElementById('fullscreen').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
-function log(msg){const l=document.getElementById('log');l.textContent += "\n" + new Date().toLocaleTimeString() + "  " + msg;l.scrollTop=l.scrollHeight}
-function setBridge(on){document.getElementById('bridgeLed').classList.toggle('on',on);document.getElementById('bridgeText').textContent=on?'Bridge online':'Bridge offline';log(on?'Bridge connected':'Bridge disconnected')}
-function mountRuntime(){const url=document.getElementById('runtimeUrl').value.trim();if(!url){log('No runtime URL supplied.');return}document.getElementById('unrealFrame').src=url;log('Mounted runtime viewport: '+url)}
-function resetViewport(){document.getElementById('unrealFrame').srcdoc='<html><body style="margin:0;background:#05070c;color:#eaf7ff;font-family:Arial;display:grid;place-items:center;height:100vh"><div style="text-align:center"><h1>Unreal Bay Viewport</h1><p>Waiting for runtime URL.</p></div></body></html>';log('Viewport reset')}
-function architect(){
-const p=document.getElementById('prompt').value;
-const lines=[
-"ARCHITECT TASK PLAN",
-"Request: "+p,
-"",
-"1. Create Unreal project from Third Person template.",
-"2. Create map Home_Node_Zero.",
-"3. Build apartment room with player start, window, door, equipment wall.",
-"4. Add corridor exit and loading/boundary trigger.",
-"5. Add outside courtyard with collision, lights, rain, and road surface.",
-"6. Add garage bay and one drivable vehicle pawn.",
-"7. Add AI Concierge NPC with first dialogue trigger.",
-"8. Add combat pad with one simple enemy pawn.",
-"9. Add portal placeholder mesh and interaction trigger.",
-"10. Add save checkpoint event and JSON output.",
-"11. Test walk, enter vehicle, drive, exit, talk, fight, save.",
-"12. Package or stream preview back into Aurora Unreal Bay."
-];
-document.getElementById('tasks').textContent=lines.join("\n");
-localStorage.setItem('aurora_architect_plan',lines.join("\n"));
-}
-function savePlan(){localStorage.setItem('aurora_manifest',JSON.stringify(manifest,null,2));document.getElementById('saveState').textContent='Saved'}
-document.getElementById('manifestText').textContent=JSON.stringify(manifest,null,2);
+const pages=[...document.querySelectorAll(".page")];
+document.querySelectorAll(".nav[data-page]").forEach(btn=>btn.onclick=()=>{pages.forEach(p=>p.classList.remove("active"));document.getElementById(btn.dataset.page).classList.add("active");document.querySelectorAll(".nav[data-page]").forEach(b=>b.classList.remove("active"));btn.classList.add("active");resize();});
+document.getElementById("fullscreen").onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+
+const state={hp:100,maxHp:100,xp:20,next:100,gold:500,cores:0,parts:4,power:18,tool:"Reality Spanner",mode:"walking",saved:"Ready",logs:["Builder Dock Zero loaded.","Meta-computer nested inside Aurora.","Unreal Bay handoff ready."]};
+function log(m){state.logs.unshift(m);state.logs=state.logs.slice(0,8);ui()}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.opacity=0,1500)}
+function ui(){hpFill.style.width=(state.hp/state.maxHp*100)+"%";hpText.textContent=Math.round(state.hp)+"/"+state.maxHp;xpFill.style.width=(state.xp/state.next*100)+"%";xpText.textContent=state.xp+"/"+state.next;toolName.textContent=state.tool;toolPower.textContent=state.power;saveText.textContent=state.saved;eventLog.innerHTML=state.logs.map(x=>"• "+x).join("<br>");inventory.innerHTML=[["🪙",state.gold],["🔩",state.cores],["🧰",state.parts],["⚡",1],["📐",1],["🔑",0],["🧪",2],["🛠️",1],["🚗",1],["🌀",1]].map(i=>`<div class="slot">${i[0]}<b>${i[1]}</b></div>`).join("")}
+ui();
+
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x06101c);scene.fog=new THREE.Fog(0x06101c,60,260);
+const camera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,900);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;dockPage.insertBefore(renderer.domElement,dockPage.firstChild);
+const hemi=new THREE.HemisphereLight(0xaad9ff,0x101018,1.35);scene.add(hemi);
+const key=new THREE.DirectionalLight(0xffffff,1.6);key.position.set(60,110,70);key.castShadow=true;scene.add(key);
+const mat={floor:new THREE.MeshStandardMaterial({color:0x111923,roughness:.65,metalness:.2}),wall:new THREE.MeshStandardMaterial({color:0x253242,roughness:.6,metalness:.25}),dark:new THREE.MeshStandardMaterial({color:0x04080d,roughness:.5,metalness:.55}),cyan:new THREE.MeshStandardMaterial({color:0x00ffc8,emissive:0x00ffc8,emissiveIntensity:1.6}),gold:new THREE.MeshStandardMaterial({color:0xd4af37,emissive:0x4b3100,emissiveIntensity:.55}),blue:new THREE.MeshStandardMaterial({color:0x60a5fa,emissive:0x082c66,emissiveIntensity:.7}),red:new THREE.MeshStandardMaterial({color:0xff4b67,emissive:0x501020,emissiveIntensity:.75}),player:new THREE.MeshStandardMaterial({color:0x18e7a8,emissive:0x003322,emissiveIntensity:.45})};
+const colliders=[];
+function box(w,h,d,x,y,z,m,name="",collide=true){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;o.userData={name,w,d,kind:name};scene.add(o);if(collide)colliders.push(o);return o}
+function cyl(r,h,x,y,z,m,name="",collide=false){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,24),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;o.userData={name,w:r*2,d:r*2,kind:name};scene.add(o);if(collide)colliders.push(o);return o}
+
+// Builder dock interior and outside strip
+box(120,.3,90,0,-.15,0,mat.floor,"floor",false);
+box(120,12,2,0,6,-45,mat.wall,"north wall");box(120,12,2,0,6,45,mat.wall,"south wall");box(2,12,90,-60,6,0,mat.wall,"west wall");box(2,12,90,60,6,0,mat.wall,"east wall");
+box(22,9,2,0,4.5,-44,mat.cyan,"deployment door",false);
+box(16,.25,12,0,.08,-35,mat.gold,"deployment pad",false);
+box(28,6,16,-38,3,-22,mat.wall,"Unreal Bay terminal");box(14,5,1,-38,3,-13.8,mat.cyan,"Unreal screen",false);
+box(22,5,14,38,2.5,-22,mat.wall,"garage bay");box(10,4,1,38,2,-14.8,mat.gold,"garage door",false);
+box(20,5,12,-38,2.5,26,mat.wall,"architect terminal");box(10,4,1,-38,2,19.8,mat.blue,"architect screen",false);
+box(18,4,10,38,2,25,mat.red,"combat pad");box(12,.25,12,38,.08,15,mat.red,"enemy zone",false);
+box(14,8,2,0,4,43.5,mat.cyan,"portal placeholder",false);
+const portalRing=new THREE.Mesh(new THREE.TorusGeometry(6,.32,16,64),mat.cyan);portalRing.position.set(0,5,43);portalRing.rotation.x=Math.PI/2;scene.add(portalRing);
+for(let x=-48;x<=48;x+=16){box(.4,6,.4,x,3,0,mat.cyan,"light post",false);const l=new THREE.PointLight(0x00ffc8,1.1,22);l.position.set(x,7,0);scene.add(l)}
+for(let i=0;i<18;i++)box(2,2,2,(Math.random()-.5)*100,1,(Math.random()-.5)*70,mat.dark,"crate");
+
+// outside test strip beyond deployment door, visible through open bay
+box(160,.25,80,0,-.2,-105,mat.floor,"outside floor",false);
+box(130,.08,18,0,.02,-105,mat.dark,"test road",false);
+for(let i=-3;i<=3;i++)box(10,16+Math.random()*18,10,i*20,8,-138-Math.random()*10,mat.wall,"outside tower");
+
+// player
+const player=new THREE.Group();player.position.set(0,.1,18);scene.add(player);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.65,1.35,6,14),mat.player);body.position.y=1.25;body.castShadow=true;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.34,16,16),mat.blue);head.position.y=2.15;player.add(head);
+const visor=new THREE.Mesh(new THREE.BoxGeometry(.5,.12,.08),mat.cyan);visor.position.set(0,2.16,.31);player.add(visor);
+
+// NPC
+function npc(x,z,name){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);const b=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.15,6,12),mat.gold);b.position.y=1.1;b.castShadow=true;g.add(b);const ring=new THREE.Mesh(new THREE.TorusGeometry(.8,.035,8,32),mat.cyan);ring.rotation.x=Math.PI/2;ring.position.y=.05;g.add(ring);g.userData={kind:"npc",name};return g}
+const concierge=npc(-12,8,"AI Concierge");
+
+// vehicle
+function makeCar(x,z){const g=new THREE.Group();g.position.set(x,.1,z);scene.add(g);const base=new THREE.Mesh(new THREE.BoxGeometry(4.5,1,7.3),mat.blue);base.position.y=.8;base.castShadow=true;g.add(base);const cabin=new THREE.Mesh(new THREE.BoxGeometry(2.8,1,2.6),mat.dark);cabin.position.set(0,1.6,-.6);g.add(cabin);for(const sx of [-2.25,2.25])for(const sz of [-2.4,2.4]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.4,18),mat.dark);w.rotation.z=Math.PI/2;w.position.set(sx,.45,sz);g.add(w)}g.userData={kind:"car",name:"Builder Dock Rover",speed:0};return g}
+const car=makeCar(38,-7);
+
+// enemy bot
+function enemy(x,z){const g=new THREE.Group();g.position.set(x,1.2,z);scene.add(g);const core=new THREE.Mesh(new THREE.BoxGeometry(1.4,.7,1.4),mat.red);core.castShadow=true;g.add(core);const eye=new THREE.Mesh(new THREE.BoxGeometry(.45,.15,.08),mat.cyan);eye.position.set(0,.06,.74);g.add(eye);g.userData={kind:"enemy",name:"Test Bot",hp:40,alive:true,cool:0,hover:Math.random()*10};return g}
+let enemies=[enemy(34,16),enemy(44,20)];
+
+let keys={},yaw=0,pitch=-.18,drag=false,lx=0,ly=0,mode="walking",activeCar=null,clock=new THREE.Clock();
+addEventListener("keydown",e=>{keys[e.code]=true;if(e.code==="KeyE")interact();if(e.code==="KeyF")builderTalk();if(e.code==="Digit1")attack()});
+addEventListener("keyup",e=>keys[e.code]=false);
+renderer.domElement.addEventListener("pointerdown",e=>{drag=true;lx=e.clientX;ly=e.clientY});
+addEventListener("pointerup",()=>drag=false);
+addEventListener("mousemove",e=>{if(!drag)return;yaw-=(e.clientX-lx)*.004;pitch=Math.max(-.8,Math.min(.35,pitch-(e.clientY-ly)*.003));lx=e.clientX;ly=e.clientY});
+
+function distance(a,b){return Math.hypot(a.position.x-b.position.x,a.position.z-b.position.z)}
+function pos(){return mode==="walking"?player:activeCar}
+function nearest(){let list=[concierge,car,...enemies.filter(e=>e.userData.alive),portalRing];let p=pos(),best=null,d=999;for(const o of list){let dd=distance(p,o);if(dd<d){d=dd;best=o}}return{obj:best,dist:d}}
+function showDialogue(s,t,choices){dialogue.style.display="block";dialogue.innerHTML=`<div class="speaker">${s}</div><div>${t}</div><div class="choices">${choices.map(c=>`<button class="choice" data-a="${c[0]}">${c[1]}</button>`).join("")}</div>`;dialogue.querySelectorAll("button").forEach(b=>b.onclick=()=>doChoice(b.dataset.a))}
+function closeDialogue(){dialogue.style.display="none"}
+function doChoice(a){if(a==="close")closeDialogue();if(a==="save"){localStorage.setItem("aurora_builder_dock_zero",JSON.stringify(state));state.saved="Saved";log("Builder Dock save written.");closeDialogue()}if(a==="architect"){document.querySelector('.nav[data-page="architectPage"]').click();closeDialogue()}if(a==="meta"){document.querySelector('.nav[data-page="metaPage"]').click();closeDialogue()}}
+function interact(){let n=nearest();if(n.dist>7){toast("Nothing close enough.");return}if(n.obj===car)return toggleCar();if(n.obj===concierge)return showDialogue("AI Concierge","Welcome back, Operator Lewis. Builder Dock Zero is active. Use this dock to design the first Unreal-bounded reality: apartment, outside strip, garage, test bot, and portal.",[["architect","Open Architect"],["meta","Open Meta-Computer"],["save","Save"],["close","Close"]]);if(n.obj.userData&&n.obj.userData.kind==="enemy")attack();if(n.obj===portalRing)toast("Portal placeholder: future runtime module gate.")}
+function builderTalk(){let n=nearest();if(n.obj===concierge&&n.dist<9)return interact();if(distance(player,{position:{x:-38,z:26}})<12){document.querySelector('.nav[data-page="architectPage"]').click();return}if(distance(player,{position:{x:-38,z:-22}})<14){document.querySelector('.nav[data-page="metaPage"]').click();return}toast("No builder terminal close enough.")}
+function toggleCar(){if(mode==="walking"){if(distance(player,car)>7){toast("Move closer to rover.");return}mode="driving";activeCar=car;player.visible=false;yaw=car.rotation.y;toast("Entered Builder Dock Rover.");}else{const off=new THREE.Vector3(4,0,0).applyAxisAngle(new THREE.Vector3(0,1,0),activeCar.rotation.y);player.position.copy(activeCar.position.clone().add(off));player.visible=true;activeCar.userData.speed=0;activeCar=null;mode="walking";toast("Exited vehicle.");}}
+function attack(){let p=pos(),target=null,d=999;for(const e of enemies.filter(x=>x.userData.alive)){let dd=distance(p,e);if(dd<d){d=dd;target=e}}if(!target||d>12){toast("No test bot in range.");return}let dmg=state.power+Math.floor(Math.random()*8);target.userData.hp-=dmg;log("Reality Spanner hit Test Bot for "+dmg+".");if(target.userData.hp<=0){target.userData.alive=false;target.visible=false;state.cores++;state.xp+=30;log("Test Bot disabled. Core collected.");ui();}}
+function moveObj(o,delta,radius){const old=o.position.clone();o.position.add(delta);o.position.x=Math.max(-78,Math.min(78,o.position.x));o.position.z=Math.max(-150,Math.min(48,o.position.z));for(const c of colliders){if(c.userData.name==="floor"||c.userData.name==="outside floor"||c.userData.name==="test road")continue;const hx=c.userData.w/2+radius,hz=c.userData.d/2+radius;if(Math.abs(o.position.x-c.position.x)<hx&&Math.abs(o.position.z-c.position.z)<hz){o.position.copy(old);return false}}return true}
+function updateWalking(dt){let sp=keys.ShiftLeft?11:6.5;let f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),v=new THREE.Vector3();if(keys.KeyW)v.add(f);if(keys.KeyS)v.sub(f);if(keys.KeyD)v.add(r);if(keys.KeyA)v.sub(r);if(v.lengthSq()){v.normalize();moveObj(player,v.multiplyScalar(sp*dt),.75);player.rotation.y=Math.atan2(v.x,v.z);body.position.y=1.25+Math.sin(performance.now()*.012)*.05}}
+function updateDriving(dt){let c=activeCar;if(!c)return;let boost=keys.ShiftLeft?1.7:1;if(keys.KeyW)c.userData.speed+=24*boost*dt;if(keys.KeyS)c.userData.speed-=28*dt;if(!keys.KeyW&&!keys.KeyS)c.userData.speed*=Math.pow(.08,dt);c.userData.speed=Math.max(-18,Math.min(48*boost,c.userData.speed));let steer=(keys.KeyA?1:0)+(keys.KeyD?-1:0);c.rotation.y+=steer*1.8*dt*Math.sign(c.userData.speed||1);const f=new THREE.Vector3(Math.sin(c.rotation.y),0,Math.cos(c.rotation.y));if(!moveObj(c,f.multiplyScalar(c.userData.speed*dt),2.6))c.userData.speed*=-.25;yaw=c.rotation.y}
+function updateEnemies(dt){for(const e of enemies.filter(x=>x.userData.alive)){e.userData.cool-=dt;let d=distance(player,e);e.position.y=1.3+Math.sin(performance.now()*.004+e.userData.hover)*.2;if(d<28){let dir=player.position.clone().sub(e.position);dir.y=0;if(dir.length()>2.5){dir.normalize();e.position.add(dir.multiplyScalar(2*dt))}e.lookAt(player.position.x,e.position.y,player.position.z);if(d<2.8&&e.userData.cool<=0&&mode==="walking"){state.hp=Math.max(0,state.hp-5);e.userData.cool=1.3;log("Test Bot tagged operator for 5.");if(state.hp<=0){state.hp=state.maxHp;player.position.set(0,.1,18);log("Operator restored at Builder Dock spawn.")}ui();}}}}
+function updateCamera(dt){let o=pos();let target=o.position.clone().add(new THREE.Vector3(0,1.4,0));let dist=mode==="walking"?10:17,height=mode==="walking"?5:7;let off=new THREE.Vector3(-Math.sin(yaw)*dist,height+Math.sin(pitch)*5,-Math.cos(yaw)*dist);camera.position.lerp(target.clone().add(off),1-Math.pow(.001,dt));camera.lookAt(target)}
+function updateHint(){let n=nearest();if(n.dist<7){hint.style.display="block";hint.textContent="Press E: "+(n.obj.userData?.name||"Portal Gate")}else hint.style.display="none";modeText.textContent=mode==="walking"?"Walking":"Driving";nearbyText.textContent=n.dist<12?(n.obj.userData?.name||"Portal Gate"):"None";}
+function drawRadar(){const ctx=radarCanvas.getContext("2d"),w=188,h=188,cx=94,cy=94;ctx.clearRect(0,0,w,h);ctx.fillStyle="#031016";ctx.fillRect(0,0,w,h);ctx.strokeStyle="rgba(0,255,200,.18)";for(let r=24;r<=84;r+=24){ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke()}let focus=pos().position,scale=1.05;function plot(o,color,s=5){let x=cx+(o.position.x-focus.x)*scale,y=cy+(o.position.z-focus.z)*scale;if((x-cx)**2+(y-cy)**2>86**2)return;ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,s,0,Math.PI*2);ctx.fill()}plot(concierge,"#60a5fa");plot(car,"#fff");for(const e of enemies.filter(x=>x.userData.alive))plot(e,"#ff4b67");plot({position:{x:-38,z:-22}},"#d4af37");plot({position:{x:-38,z:26}},"#d4af37");plot(portalRing,"#00ffc8");ctx.fillStyle="#00ffbf";ctx.beginPath();ctx.moveTo(cx,cy-8);ctx.lineTo(cx-6,cy+7);ctx.lineTo(cx+6,cy+7);ctx.closePath();ctx.fill();ctx.strokeStyle="rgba(0,255,200,.65)";ctx.beginPath();ctx.arc(cx,cy,87,0,Math.PI*2);ctx.stroke()}
+function animate(){requestAnimationFrame(animate);let dt=Math.min(clock.getDelta(),.05);if(dockPage.classList.contains("active")){if(mode==="walking")updateWalking(dt);else updateDriving(dt);updateEnemies(dt);portalRing.rotation.z+=dt*.8;updateCamera(dt);updateHint();drawRadar();renderer.render(scene,camera)}}
+function resize(){const r=dockPage.getBoundingClientRect();renderer.setSize(r.width,r.height);camera.aspect=r.width/Math.max(1,r.height);camera.updateProjectionMatrix()}
+window.addEventListener("resize",resize);setTimeout(resize,50);animate();
+
+// Meta-computer functions
+window.setBridge=function(on){bridgeLed.classList.toggle("on",on);bridgeText.textContent=on?"Bridge online":"Bridge offline";runtimeLog.textContent+="\n"+new Date().toLocaleTimeString()+" "+(on?"Bridge connected.":"Bridge disconnected.");}
+window.mountPreset=function(type){const urls={babylon:"https://sandbox.babylonjs.com/",stackblitz:"https://stackblitz.com/edit/web-platform?embed=1&file=index.html",v86:"https://copy.sh/v86/?profile=alpine"};runtimeFrame.src=urls[type];runtimeLog.textContent+="\nMounted "+type+" runtime."}
+window.mountRuntime=function(){const url=runtimeUrl.value.trim();if(!url){runtimeLog.textContent+="\nNo runtime URL supplied.";return}runtimeFrame.src=url;runtimeLog.textContent+="\nMounted Unreal/runtime URL: "+url}
+window.resetViewport=function(){runtimeFrame.srcdoc="<html><body style='margin:0;background:#05070c;color:#eaf7ff;font-family:Arial;display:grid;place-items:center;height:100vh'><div style='text-align:center'><h1>Aurora Meta-Computer</h1><p>Runtime bay reset.</p></div></body></html>";runtimeLog.textContent+="\nViewport reset."}
+
+// Architect packet
+window.makePlan=function(){const packet={project:"Aurora Builder Dock Zero",genre:genre.value,environment:environment.value,scale:scale.value,request:prompt.value,unreal_actions:["create Third Person project","create Builder_Dock_Zero map","block out enclosed builder garage","add deployment door to outside test strip","add vehicle pawn bay","add AI concierge blueprint","add test bot enemy blueprint","add mission radar widget","add portal placeholder","add save checkpoint","run play preview"],acceptance:["walk inside dock","open architect terminal","enter rover","drive outside strip","talk to concierge","disable test bot","return to meta-computer","mount Unreal runtime endpoint"]};packet.textContent=JSON.stringify(packet,null,2)}
+window.copyPacket=function(){navigator.clipboard.writeText(packet.textContent||"");toast("Packet copied.")}
 </script>
 </body>
 </html>
