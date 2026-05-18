@@ -1,42 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Aurora One Control Nest v0.3</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora One Ops Hub v0.1</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070b;color:#eaffff;font-family:Arial,Helvetica,sans-serif;user-select:none}button{font-family:inherit;cursor:pointer}:root{--a:#00ffbf;--b:#54c8ff;--g:#ffd66e;--r:#ff4b6e;--p:#af7cff;--panel:rgba(2,10,16,.84);--line:rgba(120,230,255,.26)}
-#aurora-control-nest{position:fixed;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 42%,rgba(0,255,200,.11),transparent 31%),linear-gradient(90deg,rgba(0,0,0,.72),transparent 30%,transparent 68%,rgba(0,0,0,.80))}
-#boot-kernel{position:fixed;inset:0;z-index:999;background:radial-gradient(circle,#08202a,#02070b 70%);display:grid;place-items:center;transition:.8s}.boot-hidden{opacity:0;visibility:hidden}.boot-card{width:min(620px,92vw);border:1px solid rgba(0,255,191,.36);box-shadow:0 0 55px rgba(0,255,191,.2);border-radius:18px;padding:26px;background:rgba(0,0,0,.55)}.boot-title{font-weight:900;letter-spacing:.16em;font-size:28px}.boot-line{margin-top:10px;color:#aee6e2;font-size:13px;letter-spacing:.08em}.boot-bar{height:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12);margin-top:20px}.boot-fill{height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--g));animation:boot 2.1s forwards}@keyframes boot{to{width:100%}}
-.panel{position:absolute;background:linear-gradient(180deg,var(--panel),rgba(0,4,8,.91));border:1px solid var(--line);box-shadow:0 0 26px rgba(0,255,191,.11),inset 0 0 32px rgba(0,0,0,.35);border-radius:14px;backdrop-filter:blur(13px);overflow:hidden}.card{padding:13px}.title{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--a);font-weight:800;margin-bottom:10px}.small{font-size:12px;line-height:1.45;color:#b8ccd7}.row{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:5px 0}.gold{color:var(--g)}.blue{color:var(--b)}.red{color:var(--r)}.green{color:var(--a)}.bar{height:7px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.13);margin:6px 0}.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--a),var(--g))}.hpfill{background:linear-gradient(90deg,#ff355f,#ffd66e)}.xpfill{background:linear-gradient(90deg,#4d8cff,#00ffd0)}
-#system-bus{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:24px;padding:0 20px;border-bottom:1px solid rgba(120,230,255,.25);background:rgba(1,8,14,.86);backdrop-filter:blur(14px);z-index:30}.logo{font-weight:900;font-size:20px;letter-spacing:.1em}.nav{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#aac0cc}.nav.active{color:var(--g);text-shadow:0 0 12px #ffad32}.wallet{margin-left:auto;display:flex;gap:17px;font-size:13px}
-#world-bus{position:absolute;inset:56px 0 0 0;overflow:hidden}#world-renderer{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(0,130,255,.24),transparent 10%),radial-gradient(circle at 38% 58%,rgba(255,130,35,.28),transparent 9%),radial-gradient(circle at 68% 52%,rgba(255,80,100,.20),transparent 11%),linear-gradient(0deg,rgba(3,7,10,.98),rgba(3,12,20,.55) 50%,rgba(5,16,30,.94)),repeating-linear-gradient(90deg,rgba(110,150,170,.08) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(110,150,170,.06) 0 1px,transparent 1px 80px)}#world-renderer:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px);background-size:100% 4px;mix-blend-mode:screen;pointer-events:none}.ruins{position:absolute;bottom:15%;height:44%;width:9%;background:linear-gradient(180deg,#172331,#071018);clip-path:polygon(8% 12%,80% 0,100% 100%,0 100%);opacity:.9}.r1{left:12%}.r2{left:24%;height:52%}.r3{right:20%;height:48%}.r4{right:8%;height:40%}.fire{position:absolute;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,#ffd66e,#ff7a22 35%,transparent 70%);filter:blur(2px);animation:pulse 1.4s infinite alternate}.f1{left:38%;top:58%}.f2{left:65%;top:55%}.f3{left:22%;top:65%}@keyframes pulse{to{transform:scale(1.35);opacity:.72}}
-#player-proxy{position:absolute;left:50%;top:58%;width:120px;height:260px;transform:translate(-50%,-50%);z-index:4}.hero-body{position:absolute;left:42px;top:58px;width:36px;height:130px;border-radius:20px;background:linear-gradient(180deg,#172333,#05090e);box-shadow:0 0 25px rgba(84,200,255,.25)}.hero-head{position:absolute;left:43px;top:26px;width:34px;height:34px;border-radius:50%;background:#0d1720}.hero-core{position:absolute;left:52px;top:103px;width:16px;height:16px;border-radius:50%;background:var(--b);box-shadow:0 0 18px var(--b)}.hero-sword{position:absolute;left:70px;top:72px;width:8px;height:170px;background:linear-gradient(180deg,#80dfff,#0f55ff);transform:rotate(27deg);box-shadow:0 0 20px var(--b);border-radius:8px}.enemy{position:absolute;text-align:center;font-size:12px;text-shadow:0 2px 8px black;z-index:5}.enemy .hp{width:118px;height:5px;border-radius:999px;background:#381018;margin-top:4px;overflow:hidden}.enemy .hp i{display:block;height:100%;background:var(--r);border-radius:999px}.e1{left:38%;top:43%}.e2{left:50%;top:37%}.e3{left:62%;top:44%}
-#passport-bus{left:14px;top:70px;width:295px;bottom:14px;display:flex;flex-direction:column;gap:12px;z-index:20;background:none;border:0;box-shadow:none;backdrop-filter:none}#inventory-bus{right:14px;top:70px;width:370px;bottom:14px;display:flex;flex-direction:column;gap:12px;z-index:20;background:none;border:0;box-shadow:none;backdrop-filter:none}#combat-bus{left:323px;right:398px;bottom:14px;height:212px;display:grid;grid-template-columns:1fr 1.25fr .82fr;gap:12px;z-index:22;background:none;border:0;box-shadow:none;backdrop-filter:none}.bus-card{position:relative}.avatar-grid{display:grid;grid-template-columns:68px 1fr;gap:12px}.portrait{height:68px;border-radius:11px;display:grid;place-items:center;font-size:36px;border:1px solid rgba(255,255,255,.18);background:radial-gradient(circle,#1f314c,#050b12)}#event-log{height:140px;overflow:hidden}
-#inventory-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.slot{height:50px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025));display:grid;place-items:center;font-size:24px;position:relative}.slot:hover{border-color:var(--a);box-shadow:0 0 14px rgba(0,255,191,.2)}.slot b{position:absolute;right:5px;bottom:3px;font-size:10px}.weapon-grid{display:grid;grid-template-columns:112px 1fr;gap:14px}.weapon-art{height:150px;border:1px solid rgba(84,200,255,.45);background:radial-gradient(circle,#174b75,#040b13 72%);border-radius:9px;display:grid;place-items:center;font-size:66px;text-shadow:0 0 22px #54c8ff}.sockets{display:flex;gap:10px;margin-top:10px}.socket{width:47px;height:47px;border-radius:9px;border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-size:23px;background:rgba(255,255,255,.06)}.socket.linked{box-shadow:0 0 16px rgba(255,214,110,.22);border-color:var(--g)}
-#skill-tree-layer{height:128px;position:relative;background:rgba(0,0,0,.19);border-radius:10px;border:1px solid rgba(255,255,255,.08);overflow:hidden}.skill-line{position:absolute;height:1px;background:rgba(255,214,110,.42);transform-origin:left center}.node{position:absolute;width:27px;height:27px;border-radius:50%;border:1px solid #ffd66e;background:#101820;box-shadow:0 0 14px rgba(255,214,110,.22)}.node.on{background:var(--a);border-color:#fff}.node.lock{opacity:.45;border-color:#5b6870}#ability-row{display:flex;gap:8px}.ability{height:54px;flex:1;border-radius:9px;border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;font-size:25px;background:linear-gradient(135deg,rgba(0,80,130,.55),rgba(50,18,20,.65))}.ability.ready{box-shadow:0 0 18px rgba(0,255,190,.22)}.ability:hover{border-color:var(--g)}#map-canvas{width:100%;height:124px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:radial-gradient(circle at 55% 45%,rgba(40,90,80,.8),#051017 70%);position:relative;overflow:hidden}.dot{position:absolute;width:9px;height:9px;border-radius:50%;box-shadow:0 0 12px currentColor}.you{left:48%;top:52%;color:var(--a);background:var(--a)}.forge{left:25%;top:35%;color:var(--g);background:var(--g)}.camp{left:72%;top:32%;color:var(--r);background:var(--r)}.npc{left:37%;top:58%;color:var(--b);background:var(--b)}
-#npc-dialogue-bus{left:50%;transform:translateX(-50%);bottom:238px;width:min(760px,calc(100vw - 720px));min-width:480px;padding:14px;display:none;z-index:40}.speaker{font-weight:800;color:var(--g);margin-bottom:7px}.choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.btn{background:rgba(0,255,190,.09);color:#ecffff;border:1px solid rgba(0,255,190,.35);border-radius:999px;padding:9px 12px}.btn:hover{background:rgba(0,255,190,.2)}#forge-bus{left:50%;top:78px;transform:translateX(-50%);width:540px;padding:14px;display:none;z-index:42}.recipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.recipe{border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;background:rgba(255,255,255,.045)}#quest-bus{left:50%;transform:translateX(-50%);top:70px;width:320px;padding:10px;text-align:center;z-index:18}#simulation-bus{left:50%;bottom:466px;transform:translateX(-50%);padding:10px 16px;border-radius:999px;z-index:25;font-size:13px}#vault-bus{right:402px;top:70px;width:215px;padding:10px;z-index:20}#nest-debug{left:323px;top:70px;width:310px;padding:10px;z-index:19;display:none}#nest-debug pre{white-space:pre-wrap;font-size:11px;color:#bfe9ee;margin:0;max-height:260px;overflow:auto}#toast{position:fixed;top:66px;left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.76);border:1px solid rgba(255,214,110,.42);z-index:100;opacity:0;transition:.25s}
-@media(max-width:1180px){#passport-bus{width:260px}#inventory-bus{width:320px}#combat-bus{left:14px;right:14px;height:210px;grid-template-columns:1fr 1fr}#combat-bus .panel:last-child{display:none}#vault-bus{display:none}#npc-dialogue-bus{width:70vw;min-width:0}}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030812;color:#eef7ff;font-family:Arial,Helvetica,sans-serif;user-select:none}
+:root{--gold:#d4af37;--cyan:#00ffc8;--blue:#60a5fa;--red:#ff4b67;--panel:rgba(5,11,20,.78)}
+body{background:radial-gradient(circle at 30% 20%,#10213d,#030812 62%)}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+.navbar{height:58px;background:rgba(8,12,24,.9);border-bottom:1px solid rgba(212,175,55,.25);display:flex;align-items:center;gap:16px;padding:0 16px;z-index:30;backdrop-filter:blur(12px)}
+.logo{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--gold),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.nav-btn{background:transparent;border:1px solid rgba(255,255,255,.12);color:#cbd5e6;border-radius:999px;padding:8px 12px;cursor:pointer;font-size:13px}
+.nav-btn.active,.nav-btn:hover{border-color:var(--gold);color:var(--gold)}
+#fullscreen{margin-left:auto}
+.page{display:none;position:relative;flex:1;min-height:0}
+.page.active{display:block}
+.panel{background:var(--panel);border:1px solid rgba(0,255,200,.25);box-shadow:0 0 22px rgba(0,255,200,.11);border-radius:14px;backdrop-filter:blur(10px)}
+#worldPage canvas{display:block;width:100%;height:100%}
+#hudLeft,#hudRight,#bottomBar,#dialogue,#hint,#toast{position:absolute;z-index:20}
+#hudLeft{top:14px;left:14px;width:292px;display:flex;flex-direction:column;gap:10px}
+#hudRight{top:14px;right:14px;width:330px;display:flex;flex-direction:column;gap:10px}
+.card{padding:12px}
+.title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);font-weight:800;margin-bottom:8px}
+.row{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:5px 0}
+.small{font-size:12px;line-height:1.45;color:#b9c9d7}
+.gold{color:var(--gold)}.cyan{color:var(--cyan)}.red{color:var(--red)}.blue{color:var(--blue)}
+.bar{height:8px;background:rgba(255,255,255,.14);border-radius:999px;overflow:hidden;margin:5px 0}
+.fill{height:100%;width:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:999px}
+.hp .fill{background:linear-gradient(90deg,#ff3155,#ffc66e)}
+#inv{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.slot{height:44px;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;cursor:pointer}
+.slot b{position:absolute;right:5px;bottom:2px;font-size:10px}
+#bottomBar{left:320px;right:360px;bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.abilityRow{display:flex;gap:7px}.ability{flex:1;height:46px;border:1px solid rgba(255,255,255,.16);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(145deg,rgba(0,80,120,.5),rgba(40,20,60,.55));cursor:pointer}
+#dialogue{left:50%;bottom:120px;transform:translateX(-50%);width:min(760px,90vw);padding:14px;display:none}
+.speaker{font-weight:800;color:var(--gold);margin-bottom:7px}
+.choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.choice{background:rgba(0,255,200,.09);color:#eaffff;border:1px solid rgba(0,255,200,.35);border-radius:999px;padding:8px 12px;cursor:pointer}
+.choice:hover{background:rgba(0,255,200,.2)}
+#hint{left:50%;bottom:86px;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.18);display:none;font-size:13px}
+#toast{left:50%;top:14px;transform:translateX(-50%);padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.74);border:1px solid rgba(212,175,55,.45);opacity:0;transition:.25s}
+#homePage,#nestPage{padding:24px;overflow:auto}
+.hero{max-width:1100px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:20px}
+.tile{padding:18px;border-radius:18px;background:rgba(20,32,52,.72);border:1px solid rgba(212,175,55,.23)}
+.tile h3{margin:0 0 8px;color:var(--gold)}
+.logBox{height:220px;overflow:auto;background:rgba(0,0,0,.35);border:1px solid rgba(0,255,200,.2);border-radius:12px;padding:10px;font-family:monospace;font-size:12px}
+kbd{background:#111b22;border:1px solid #2b4a55;border-radius:5px;padding:2px 5px;color:#fff}
+@media(max-width:900px){#hudLeft,#hudRight{width:235px}#bottomBar{left:10px;right:10px;grid-template-columns:1fr;bottom:8px}.navbar{overflow-x:auto}.nav-btn{white-space:nowrap}}
 </style>
 </head>
 <body>
-<div id="boot-kernel"><div class="boot-card"><div class="boot-title">AURORA ONE</div><div class="boot-line">INITIALISING HTML CONTROL NEST</div><div class="boot-line">MOUNTING PASSPORT BUS • INVENTORY BUS • NPC BUS • ENEMY AI BUS • SAVE VAULT</div><div class="boot-bar"><div class="boot-fill"></div></div></div></div>
-<div id="aurora-control-nest">
-<header id="system-bus"><div class="logo">AURORA ONE</div><div class="nav active" data-panel="world">World</div><div class="nav" data-panel="avatar">Avatar</div><div class="nav" data-panel="inventory">Inventory</div><div class="nav" data-panel="skills">Skills</div><div class="nav" data-panel="forge">Forge</div><div class="nav" data-panel="debug">Nest</div><div class="wallet"><span>🪙 <b data-bind="gold"></b></span><span>🔷 <b data-bind="crystal"></b></span><span>⭐ <b data-bind="rep"></b></span></div></header>
-<main id="world-bus"><section id="world-renderer"><div class="ruins r1"></div><div class="ruins r2"></div><div class="ruins r3"></div><div class="ruins r4"></div><div class="fire f1"></div><div class="fire f2"></div><div class="fire f3"></div><div id="player-proxy"><div class="hero-head"></div><div class="hero-body"></div><div class="hero-core"></div><div class="hero-sword"></div></div><div class="enemy e1">Gremlin Scout<br/>Level 6<div class="hp"><i style="width:65%"></i></div></div><div class="enemy e2">Gremlin Brute<br/>Level 9<div class="hp"><i style="width:88%"></i></div></div><div class="enemy e3">Gremlin Shaman<br/>Level 8<div class="hp"><i style="width:75%"></i></div></div></section></main>
-<aside id="passport-bus"><section class="panel card bus-card"><div class="avatar-grid"><div class="portrait">🧑🏽‍🚀</div><div><div class="row"><b data-bind="playerName"></b><span>LEVEL <b data-bind="level"></b></span></div><div class="small">Active Role <span class="gold" data-bind="role"></span></div><div class="bar"><div class="fill hpfill" data-fill="hp"></div></div><div class="bar"><div class="fill xpfill" data-fill="xp"></div></div><div class="small">Next Level: <span data-bind="nextXp"></span></div></div></div></section><section class="panel card bus-card"><div class="title">Current Quest</div><div class="row"><b>The Shadow Coal</b><span data-bind="questText"></span></div><div class="small">Obtain 3 Void Coal Shards from Gremlin Camps. Return to the Forge Keeper before night rotation ends.</div><div class="bar"><div class="fill" data-fill="quest"></div></div><div class="row small"><span>Rewards</span><span>5,000 XP + Nightforge Recipe</span></div></section><section class="panel card bus-card" style="flex:1"><div class="title">World Chat / System Events</div><div id="event-log" class="small"></div></section></aside>
-<aside id="inventory-bus"><section class="panel card bus-card"><div class="title">Inventory Bus</div><div id="inventory-grid"></div></section><section class="panel card bus-card"><div class="title">Equipped Weapon</div><div class="weapon-grid"><div class="weapon-art">🗡️</div><div><div class="blue"><b data-bind="weaponName"></b></div><div class="gold small" data-bind="weaponClass"></div><div class="row"><span>Attack</span><b data-bind="atk"></b></div><div class="row small"><span>Fire Damage</span><span>+45</span></div><div class="row small"><span>Darkness Affinity</span><span>+35</span></div><div class="row small"><span>Gremlin Slayer</span><span data-bind="slayer"></span></div><div class="sockets"><div class="socket linked" data-action="socket">💎</div><div class="socket linked" data-action="socket">⚡</div><div class="socket" data-action="socket">🔮</div></div></div></div></section><section class="panel card bus-card"><div class="title">Avatar Stats</div><div class="row"><span>Strength</span><b data-bind="strength"></b></div><div class="row"><span>Agility</span><b data-bind="agility"></b></div><div class="row"><span>Intellect</span><b data-bind="intellect"></b></div><div class="row"><span>Endurance</span><b data-bind="endurance"></b></div><div class="row"><span>Luck</span><b data-bind="luck"></b></div></section></aside>
-<footer id="combat-bus"><section class="panel card bus-card"><div class="title">Skill Tree — Forge Knight</div><div id="skill-tree-layer"></div><div class="row small"><span>Skill Points Available</span><span class="blue" data-bind="skillPoints"></span></div></section><section class="panel card bus-card"><div class="title">Ability Bus</div><div id="ability-row"><div class="ability ready" data-action="ability" data-ability="Pulse Step">🌀</div><div class="ability ready" data-action="ability" data-ability="Blade Strike">🗡️</div><div class="ability ready" data-action="ability" data-ability="Fire Socket">🔥</div><div class="ability" data-action="ability" data-ability="Guard Shell">🛡️</div><div class="ability ready" data-action="ability" data-ability="Forge Inspect">⚒️</div><div class="ability" data-action="ability" data-ability="Scout Eye">👁️</div><div class="ability" data-action="ability" data-ability="Wolf Mark">🐺</div></div><div class="small" style="margin-top:10px">Nested bus actions: abilities update state, inventory talks to forge, NPC dialogue reads world context.</div></section><section class="panel card bus-card"><div class="title">World Map</div><div id="map-canvas"><span class="dot you"></span><span class="dot forge"></span><span class="dot camp"></span><span class="dot npc"></span></div><div class="small">You • Forge • Enemy Camp • NPC</div></section></footer>
-<section id="npc-dialogue-bus" class="panel"></section><section id="forge-bus" class="panel"></section><section id="quest-bus" class="panel"><div class="small"><span class="blue">LONDON RUIN YARD</span> • NIGHT • <span data-bind="time"></span></div></section><section id="simulation-bus" class="panel">Forge Keeper nearby: “You have rare coal. I can awaken the blade memory.”</section><section id="vault-bus" class="panel"><div class="title">Save Vault</div><div class="small">Autosave: <span data-bind="saveState"></span></div><button class="btn" data-action="save">Save JSON</button><button class="btn" data-action="load" style="margin-top:6px">Load JSON</button></section><section id="nest-debug" class="panel"><div class="title">Nest Kernel Debug</div><pre id="debug-output"></pre></section><div id="toast"></div></div>
-<script>
-const AuroraKernel={passport:{playerName:"MR LEWIS",level:18,role:"Forge Knight",hp:100,maxHp:100,xp:42,nextXp:"5,550 XP",gold:12450,crystal:3200,rep:150,skillPoints:2},avatar:{stats:{strength:68,agility:42,intellect:31,endurance:55,luck:29}},inventory:{items:[{id:"blade",icon:"🗡️",qty:12,type:"weapon"},{id:"ore",icon:"🪨",qty:8,type:"material"},{id:"crystal",icon:"💎",qty:3,type:"module"},{id:"mana",icon:"🔷",qty:47,type:"currency"},{id:"void_coal",icon:"🖤",qty:2,type:"rare"},{id:"fire_core",icon:"🔥",qty:3,type:"module"},{id:"boots",icon:"🥾",qty:1,type:"gear"},{id:"shield",icon:"🛡️",qty:1,type:"gear"},{id:"ice_core",icon:"🧊",qty:2,type:"module"},{id:"wood",icon:"🪵",qty:11,type:"material"},{id:"potion",icon:"🧪",qty:5,type:"consumable"},{id:"recipe",icon:"📜",qty:2,type:"recipe"},{id:"hammer",icon:"⚒️",qty:1,type:"tool"},{id:"scale",icon:"🐉",qty:0,type:"rare"},{id:"coin",icon:"🪙",qty:12450,type:"currency"}]},weapons:{equipped:{id:"nightforge_blade",name:"Nightforge Blade +7",class:"Legendary Great Sword",atk:256,slayer:"+18%",memory:["gremlin camp","void coal","night battle"]}},skills:{nodes:[{id:"combat",x:22,y:50,unlocked:true,label:"Combat"},{id:"socket",x:75,y:28,unlocked:true,label:"Socketing"},{id:"rareForge",x:132,y:48,unlocked:true,label:"Rare Forge"},{id:"survival",x:73,y:88,unlocked:false,label:"Survival"},{id:"campBreaker",x:190,y:38,unlocked:false,label:"Camp Breaker"},{id:"worldMemory",x:222,y:86,unlocked:false,label:"World Memory"},{id:"forge",x:35,y:92,unlocked:true,label:"Forge"},{id:"materialRead",x:142,y:92,unlocked:true,label:"Material Read"}],edges:[[0,1],[1,2],[1,3],[2,4],[3,5],[0,6],[6,7],[7,2]]},forge:{recipes:[{id:"campbreaker_memory",name:"Campbreaker Memory",requires:[["void_coal",2],["ore",3]],output:"Nightforge Blade +8",effect:"+18 attack, +world-recognised camp trait"},{id:"shadow_socket",name:"Shadow Socket",requires:[["void_coal",1],["crystal",1]],output:"Shadow Lens Module",effect:"+darkness affinity"}]},quests:{shadowCoal:{current:2,total:3,complete:false}},worldState:{zone:"London Ruin Yard",time:"22:47",campLevel:2,night:true},saveVault:{saveState:"Ready"},logs:["Kael_98: anyone up for Gremlin Camp raid?","IronWolf: I’m in.","LunaCraft: need 1 more.","System: Gremlin Camp at North Ruins upgraded to Level 2.","Forge Keeper: rare material detected.","Guide Warden: Night cycle increases ambush behaviour."]};
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];function item(id){return AuroraKernel.inventory.items.find(x=>x.id===id)}function toast(t){const el=$("#toast");el.textContent=t;el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.opacity=0,1600)}function canCraft(r){return r.requires.every(([id,q])=>(item(id)?.qty||0)>=q)}function spend(r){r.requires.forEach(([id,q])=>item(id).qty-=q)}
-function bind(){const p=AuroraKernel.passport,w=AuroraKernel.weapons.equipped,s=AuroraKernel.avatar.stats,q=AuroraKernel.quests.shadowCoal,v=AuroraKernel.saveVault;const data={playerName:p.playerName,level:p.level,role:p.role,nextXp:p.nextXp,gold:p.gold,crystal:p.crystal,rep:p.rep,skillPoints:p.skillPoints,weaponName:w.name,weaponClass:w.class,atk:w.atk,slayer:w.slayer,strength:s.strength,agility:s.agility,intellect:s.intellect,endurance:s.endurance,luck:s.luck,questText:q.complete?"Complete":q.current+" / "+q.total,time:AuroraKernel.worldState.time,saveState:v.saveState};$$('[data-bind]').forEach(el=>{el.textContent=data[el.dataset.bind]??""});$('[data-fill="hp"]').style.width=(p.hp/p.maxHp*100)+"%";$('[data-fill="xp"]').style.width=p.xp+"%";$('[data-fill="quest"]').style.width=(q.current/q.total*100)+"%";renderInventory();renderSkills();renderLogs();debug()}
-function renderInventory(){$("#inventory-grid").innerHTML=AuroraKernel.inventory.items.map(x=>`<div class="slot" data-item="${x.id}" title="${x.id} / ${x.type}">${x.icon}<b>${x.qty}</b></div>`).join("")}function renderLogs(){$("#event-log").innerHTML=AuroraKernel.logs.map((l,i)=>`<div>${i===3?'<span class="gold">[World]</span>':'<span class="blue">[World]</span>'} ${l}</div>`).join("")}function renderSkills(){const layer=$("#skill-tree-layer");layer.innerHTML="";const n=AuroraKernel.skills.nodes;AuroraKernel.skills.edges.forEach(([a,b])=>{const A=n[a],B=n[b],ax=A.x+13,ay=A.y+13,bx=B.x+13,by=B.y+13,dx=bx-ax,dy=by-ay;const line=document.createElement("div");line.className="skill-line";line.style.left=ax+"px";line.style.top=ay+"px";line.style.width=Math.hypot(dx,dy)+"px";line.style.transform=`rotate(${Math.atan2(dy,dx)}rad)`;layer.appendChild(line)});n.forEach(node=>{const d=document.createElement("div");d.className="node "+(node.unlocked?"on":"lock");d.style.left=node.x+"px";d.style.top=node.y+"px";d.title=node.label;d.dataset.skill=node.id;layer.appendChild(d)})}
-function openNPC(){const c=item("void_coal")?.qty||0;$("#npc-dialogue-bus").style.display="block";$("#npc-dialogue-bus").innerHTML=`<div class="speaker">Forge Keeper</div><div>You are carrying ${c} Void Coal shard(s). This material is not just fuel. It carries battle memory from the Gremlin Camp. I can read it, bind it to your blade, and evolve the weapon state.</div><div class="choices"><button class="btn" data-dialog="forge">Open Forge Bus</button><button class="btn" data-dialog="explain">Explain Weapon Memory</button><button class="btn" data-dialog="close">Close</button></div>`}function closeNPC(){$("#npc-dialogue-bus").style.display="none"}function openForge(){const box=$("#forge-bus");box.style.display="block";box.innerHTML=`<div class="title">Forge Bus — Rare Contract System</div><div class="recipe-grid">${AuroraKernel.forge.recipes.map(r=>`<div class="recipe"><b class="gold">${r.name}</b><div class="small">Requires: ${r.requires.map(([id,q])=>`${q} ${id}`).join(", ")}</div><div class="small">Output: ${r.output}</div><div class="small blue">${r.effect}</div><button class="btn" data-craft="${r.id}" style="margin-top:8px">${canCraft(r)?"Craft":"Missing Materials"}</button></div>`).join("")}</div><div class="choices"><button class="btn" data-dialog="closeForge">Close Forge</button></div>`}function closeForge(){$("#forge-bus").style.display="none"}
-function craft(id){const r=AuroraKernel.forge.recipes.find(x=>x.id===id);if(!r||!canCraft(r)){toast("Missing materials");return}spend(r);AuroraKernel.weapons.equipped.name=r.output;if(id==="campbreaker_memory"){AuroraKernel.weapons.equipped.atk+=18;AuroraKernel.weapons.equipped.slayer="+28%";AuroraKernel.quests.shadowCoal.current=3;AuroraKernel.quests.shadowCoal.complete=true;AuroraKernel.passport.rep+=7;AuroraKernel.passport.skillPoints+=1;AuroraKernel.logs.unshift("Forge Keeper forged Campbreaker Memory into the blade.")}else{AuroraKernel.logs.unshift("Shadow Lens Module created and added to inventory.");item("crystal").qty+=1}toast("Crafted: "+r.output);bind();openForge()}
-function ability(name){AuroraKernel.logs.unshift("Ability activated: "+name);if(name==="Blade Strike"){AuroraKernel.passport.xp=Math.min(100,AuroraKernel.passport.xp+6)}if(name==="Forge Inspect"){openNPC()}toast(name+" activated");bind()}function unlockSkill(id){const n=AuroraKernel.skills.nodes.find(x=>x.id===id);if(!n||n.unlocked)return;if(AuroraKernel.passport.skillPoints<=0){toast("No skill points available");return}n.unlocked=true;AuroraKernel.passport.skillPoints--;AuroraKernel.logs.unshift("Skill unlocked: "+n.label);toast("Unlocked: "+n.label);bind()}function saveJSON(){localStorage.setItem("aurora-one-control-nest-v03",JSON.stringify(AuroraKernel));AuroraKernel.saveVault.saveState="Saved locally";toast("Save vault written");bind()}function loadJSON(){const raw=localStorage.getItem("aurora-one-control-nest-v03");if(!raw){toast("No local save found");return}Object.assign(AuroraKernel,JSON.parse(raw));toast("Save vault loaded");bind()}function debug(){$("#debug-output").textContent=JSON.stringify(AuroraKernel,null,2)}
-document.addEventListener("click",e=>{const a=e.target.closest("[data-action]");if(a){if(a.dataset.action==="ability")ability(a.dataset.ability);if(a.dataset.action==="socket")toast("Socket bus: linked materia-style modules combine effects.");if(a.dataset.action==="save")saveJSON();if(a.dataset.action==="load")loadJSON()}const it=e.target.closest("[data-item]");if(it)toast("Inventory bus inspected: "+it.dataset.item);const d=e.target.closest("[data-dialog]");if(d){if(d.dataset.dialog==="close")closeNPC();if(d.dataset.dialog==="forge")openForge();if(d.dataset.dialog==="explain"){$("#npc-dialogue-bus").innerHTML='<div class="speaker">Forge Keeper</div><div>Weapon memory = battle history + rare material + socket modules. The blade becomes a state object other worlds can recognise.</div><div class="choices"><button class="btn" data-dialog="forge">Open Forge</button><button class="btn" data-dialog="close">Close</button></div>'}if(d.dataset.dialog==="closeForge")closeForge()}const c=e.target.closest("[data-craft]");if(c)craft(c.dataset.craft);const sk=e.target.closest("[data-skill]");if(sk)unlockSkill(sk.dataset.skill);const nav=e.target.closest(".nav");if(nav){$$('.nav').forEach(n=>n.classList.remove('active'));nav.classList.add('active');if(nav.dataset.panel==="forge")openForge();if(nav.dataset.panel==="debug"){$("#nest-debug").style.display=$("#nest-debug").style.display==="block"?"none":"block";debug()}if(nav.dataset.panel==="world"){closeForge();closeNPC()}}});$("#simulation-bus").addEventListener("click",openNPC);setTimeout(()=>$("#boot-kernel").classList.add("boot-hidden"),2500);setTimeout(openNPC,2900);bind();
+<div id="app">
+  <nav class="navbar">
+    <div class="logo">⚡ Aurora One Ops Hub</div>
+    <button class="nav-btn active" data-page="homePage">Home</button>
+    <button class="nav-btn" data-page="worldPage">Aurora Ops Hub</button>
+    <button class="nav-btn" data-page="nestPage">Nest Console</button>
+    <button id="fullscreen" class="nav-btn">Fullscreen</button>
+  </nav>
+
+  <section id="homePage" class="page active">
+    <div class="hero">
+      <h1>Aurora One Ops Hub v0.1</h1>
+      <p>This is the merged first prototype: outer HTML control nest plus a playable 3D operations hub. It keeps the console shell idea and restores the usable movement core.</p>
+      <div class="grid">
+        <div class="tile"><h3>Control Nest</h3><p>Passport, inventory, forge, dialogue, save vault, and world launcher live in the outer HTML shell.</p></div>
+        <div class="tile"><h3>Playable Hub</h3><p>Walk around a futuristic operations yard, enter a vehicle, drive, exit, talk to NPCs, fight drones, collect loot, and forge an upgrade.</p></div>
+        <div class="tile"><h3>Controls</h3><p><kbd>WASD</kbd> move or drive. <kbd>Mouse drag</kbd> look. <kbd>E</kbd> interact. <kbd>1</kbd> attack. <kbd>F</kbd> forge or talk. <kbd>Shift</kbd> sprint or boost.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="worldPage" class="page">
+    <div id="hudLeft">
+      <div class="panel card">
+        <div class="title">Passport</div>
+        <div class="row"><b>Mr Lewis</b><span>Role <span class="gold">Forge Knight</span></span></div>
+        <div class="bar hp"><div id="hpFill" class="fill"></div></div>
+        <div class="row small"><span>Health</span><span id="hpText">100/100</span></div>
+        <div class="bar"><div id="xpFill" class="fill" style="width:20%"></div></div>
+        <div class="row small"><span>XP</span><span id="xpText">20/100</span></div>
+      </div>
+      <div class="panel card">
+        <div class="title">Quest</div>
+        <div class="row"><b>First Night Run</b><span id="questState">Active</span></div>
+        <div class="small">Talk to the Forge Engineer, defeat rogue drones, collect two Drone Cores, then forge the Pulse Edge upgrade.</div>
+      </div>
+      <div class="panel card">
+        <div class="title">World Events</div>
+        <div id="eventLog" class="small" style="height:130px;overflow:hidden"></div>
+      </div>
+    </div>
+
+    <div id="hudRight">
+      <div class="panel card">
+        <div class="title">Inventory</div>
+        <div id="inv"></div>
+      </div>
+      <div class="panel card">
+        <div class="title">Weapon</div>
+        <div class="row"><b id="weaponName">Rust Edge</b><span>ATK <b id="atkText">18</b></span></div>
+        <div class="small">Sockets: 🔵 Pulse Core, ⚡ Link Cell, 🔒 locked</div>
+      </div>
+      <div class="panel card">
+        <div class="title">World State</div>
+        <div class="row"><span>Mode</span><b id="modeText">Walking</b></div>
+        <div class="row"><span>Nearby</span><b id="nearbyText">None</b></div>
+        <div class="row"><span>Save</span><b id="saveText">Ready</b></div>
+      </div>
+    </div>
+
+    <div id="bottomBar">
+      <div class="panel card"><div class="title">Abilities</div><div class="abilityRow"><div class="ability">🌀</div><div class="ability">🗡️</div><div class="ability">⚒️</div><div class="ability">🛡️</div></div></div>
+      <div class="panel card"><div class="title">Controls</div><div class="small">WASD move/drive. E interact. 1 attack. F talk/forge. Shift sprint/boost.</div></div>
+      <div class="panel card"><div class="title">Node</div><div class="row"><span>Loaded</span><b>Ops Hub 01</b></div><div class="small">Portal gate is a placeholder for future loaded worlds.</div></div>
+    </div>
+
+    <div id="dialogue" class="panel"></div>
+    <div id="hint"></div>
+    <div id="toast"></div>
+  </section>
+
+  <section id="nestPage" class="page">
+    <div class="hero">
+      <h1>Nest Console</h1>
+      <p>This page shows the working shell state. It is the parking-space console layer that wraps the playable world.</p>
+      <div class="grid">
+        <div class="tile"><h3>Passport Save</h3><div id="stateDump" class="logBox"></div></div>
+        <div class="tile"><h3>Actions</h3><p><button id="saveBtn" class="choice">Save State</button> <button id="loadBtn" class="choice">Load State</button> <button id="resetBtn" class="choice">Reset Save</button></p></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+const pages=[...document.querySelectorAll(".page")];
+document.querySelectorAll(".nav-btn[data-page]").forEach(btn=>btn.onclick=()=>{pages.forEach(p=>p.classList.remove("active"));document.getElementById(btn.dataset.page).classList.add("active");document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");onResize();dumpState();});
+document.getElementById("fullscreen").onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+
+const state={
+  hp:100,maxHp:100,xp:20,next:100,gold:500,cores:0,ore:3,pulse:1,weapon:"Rust Edge",atk:18,forged:false,
+  quest:"Active",logs:["Aurora Ops Hub loaded.","Passport mounted into shell.","Ops Hub runtime waiting."]
+};
+function saveState(){localStorage.setItem("aurora_ops_v01",JSON.stringify(state));document.getElementById("saveText").textContent="Saved";toast("State saved.");dumpState();}
+function loadState(){const raw=localStorage.getItem("aurora_ops_v01");if(!raw){toast("No save found.");return}Object.assign(state,JSON.parse(raw));toast("State loaded.");ui();dumpState();}
+function resetState(){localStorage.removeItem("aurora_ops_v01");location.reload();}
+document.getElementById("saveBtn").onclick=saveState;document.getElementById("loadBtn").onclick=loadState;document.getElementById("resetBtn").onclick=resetState;
+function log(msg){state.logs.unshift(msg);state.logs=state.logs.slice(0,8);ui();}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.opacity=0,1600);}
+function dumpState(){document.getElementById("stateDump").textContent=JSON.stringify(state,null,2);}
+function ui(){
+ document.getElementById("hpFill").style.width=(state.hp/state.maxHp*100)+"%";
+ document.getElementById("hpText").textContent=Math.round(state.hp)+"/"+state.maxHp;
+ document.getElementById("xpFill").style.width=(state.xp/state.next*100)+"%";
+ document.getElementById("xpText").textContent=state.xp+"/"+state.next;
+ document.getElementById("questState").textContent=state.quest;
+ document.getElementById("weaponName").textContent=state.weapon;
+ document.getElementById("atkText").textContent=state.atk;
+ document.getElementById("eventLog").innerHTML=state.logs.map(x=>"• "+x).join("<br>");
+ document.getElementById("inv").innerHTML=[
+  ["🪙",state.gold],["🔩",state.cores],["🪨",state.ore],["🔵",state.pulse],["🧪",2],
+  ["🗡️",1],["⚡",1],["🛡️",1],["📜",1],["🔑",0]
+ ].map(i=>`<div class="slot">${i[0]}<b>${i[1]}</b></div>`).join("");
+ dumpState();
+}
+ui();
+
+const page=document.getElementById("worldPage");
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x07101a);scene.fog=new THREE.Fog(0x07101a,90,420);
+const camera=new THREE.PerspectiveCamera(68,window.innerWidth/window.innerHeight,0.1,1000);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;page.insertBefore(renderer.domElement,page.firstChild);
+const hemi=new THREE.HemisphereLight(0xaad9ff,0x111820,1.35);scene.add(hemi);
+const moon=new THREE.DirectionalLight(0xffffff,1.7);moon.position.set(80,120,60);moon.castShadow=true;scene.add(moon);
+const neonLight=new THREE.PointLight(0x00ffc8,2.5,90);neonLight.position.set(-38,14,-15);scene.add(neonLight);
+const redLight=new THREE.PointLight(0xff405e,2.1,80);redLight.position.set(42,12,-35);scene.add(redLight);
+
+const mat={
+ ground:new THREE.MeshStandardMaterial({color:0x172120,roughness:.9}),
+ road:new THREE.MeshStandardMaterial({color:0x101820,roughness:.88}),
+ wall:new THREE.MeshStandardMaterial({color:0x2d3946,roughness:.82}),
+ cyan:new THREE.MeshStandardMaterial({color:0x00ffc8,emissive:0x00ffc8,emissiveIntensity:1.3}),
+ gold:new THREE.MeshStandardMaterial({color:0xd4af37,emissive:0x4a3000,emissiveIntensity:.4}),
+ red:new THREE.MeshStandardMaterial({color:0xff4b67,emissive:0x5c1020,emissiveIntensity:.65}),
+ blue:new THREE.MeshStandardMaterial({color:0x60a5fa,emissive:0x062c66,emissiveIntensity:.5}),
+ dark:new THREE.MeshStandardMaterial({color:0x06090d,roughness:.7}),
+ player:new THREE.MeshStandardMaterial({color:0x18e7a8,emissive:0x003322,emissiveIntensity:.35}),
+ enemy:new THREE.MeshStandardMaterial({color:0xff4b67,emissive:0x3a0612,emissiveIntensity:.45})
+};
+function box(w,h,d,x,y,z,m,name="",collide=true){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;o.userData={name,collide,w,d,type:name};scene.add(o);if(collide)colliders.push(o);return o}
+const colliders=[];
+box(240,.3,180,0,-.15,0,mat.ground,"ground",false);
+box(210,.08,22,0,.02,8,mat.road,"road",false);
+box(22,.08,170,0,.03,0,mat.road,"road",false);
+for(let i=-5;i<=5;i++){box(10,Math.random()*20+14,10,i*20,8,-70-Math.random()*18,mat.wall,"tower");box(9,Math.random()*16+10,9,i*19,6,70+Math.random()*14,mat.wall,"tower")}
+box(28,8,18,-55,4,-20,mat.wall,"Forge Shop");box(12,6,1,-55,3,-10.8,mat.cyan,"forge door",false);
+box(26,7,18,45,3.5,-32,mat.red,"Combat Alley");box(18,6,12,68,3,-40,mat.wall,"Drone Nest");
+box(26,7,20,54,3.5,38,mat.blue,"Portal Gate");box(10,9,2,54,4.5,27,mat.cyan,"portal",false);
+box(24,7,18,-45,3.5,42,mat.wall,"Garage");box(10,4,1,-45,2,32.5,mat.gold,"garage door",false);
+for(let i=0;i<22;i++)box(2,2,2,(Math.random()-.5)*190,1,(Math.random()-.5)*145,mat.wall,"crate");
+
+const player=new THREE.Group();player.position.set(-6,.1,20);scene.add(player);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.65,1.35,6,14),mat.player);body.position.y=1.25;body.castShadow=true;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.34,16,16),mat.blue);head.position.y=2.15;player.add(head);
+
+function npc(x,z,name,m){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);const b=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.15,6,12),m);b.position.y=1.1;b.castShadow=true;g.add(b);const ring=new THREE.Mesh(new THREE.TorusGeometry(.82,.035,8,32),mat.cyan);ring.rotation.x=Math.PI/2;ring.position.y=.05;g.add(ring);g.userData={kind:"npc",name};return g}
+const forgeNPC=npc(-52,-7,"Forge Engineer",mat.gold);
+const guideNPC=npc(-12,10,"AI Concierge",mat.cyan);
+
+function enemy(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);const b=new THREE.Mesh(new THREE.CapsuleGeometry(.45,.9,5,10),mat.enemy);b.position.y=.9;b.castShadow=true;g.add(b);g.userData={kind:"enemy",name:"Rogue Drone",hp:40,maxHp:40,cool:0,alive:true};return g}
+let enemies=[enemy(38,-18),enemy(50,-30),enemy(62,-26)];
+
+function car(x,z){const g=new THREE.Group();g.position.set(x,.1,z);scene.add(g);const base=new THREE.Mesh(new THREE.BoxGeometry(4,1,7),mat.blue);base.position.y=.8;base.castShadow=true;g.add(base);const cabin=new THREE.Mesh(new THREE.BoxGeometry(2.8,1,2.7),mat.dark);cabin.position.set(0,1.55,-.5);g.add(cabin);g.userData={kind:"car",name:"Armoured Car",speed:0,occupied:false};return g}
+const vehicle=car(-42,28);
+
+let mode="walking",activeCar=null,yaw=0,pitch=-.18,drag=false,lastX=0,lastY=0,keys={},clock=new THREE.Clock();
+addEventListener("keydown",e=>{keys[e.code]=true;if(e.code==="KeyE")interact();if(e.code==="KeyF")talkForge();if(e.code==="Digit1")attack();if(e.code==="ShiftLeft"){}});
+addEventListener("keyup",e=>keys[e.code]=false);
+renderer.domElement.addEventListener("pointerdown",e=>{drag=true;lastX=e.clientX;lastY=e.clientY});
+addEventListener("pointerup",()=>drag=false);
+addEventListener("mousemove",e=>{if(!drag)return;yaw-=(e.clientX-lastX)*.004;pitch=Math.max(-.8,Math.min(.3,pitch-(e.clientY-lastY)*.003));lastX=e.clientX;lastY=e.clientY});
+
+function distance(a,b){return Math.hypot(a.position.x-b.position.x,a.position.z-b.position.z)}
+function nearest(){let list=[forgeNPC,guideNPC,vehicle,...enemies.filter(e=>e.userData.alive)];let best=null,d=999;let pos=mode==="walking"?player:activeCar;for(const o of list){let dd=distance(pos,o);if(dd<d){d=dd;best=o}}return{obj:best,dist:d}}
+function dialogue(speaker,text,choices){const d=document.getElementById("dialogue");d.style.display="block";d.innerHTML=`<div class="speaker">${speaker}</div><div>${text}</div><div class="choices">${choices.map(c=>`<button class="choice" data-act="${c[0]}">${c[1]}</button>`).join("")}</div>`;d.querySelectorAll("button").forEach(b=>b.onclick=()=>dialogueAction(b.dataset.act))}
+function closeDialogue(){document.getElementById("dialogue").style.display="none"}
+function dialogueAction(a){if(a==="close")closeDialogue();if(a==="save"){saveState();closeDialogue()}if(a==="forge"){forge()}if(a==="mission"){log("Mission accepted: clear the rogue drones.");toast("Mission accepted.");closeDialogue()}if(a==="portal"){toast("Gateway placeholder: future world module slot.");closeDialogue()}}
+function interact(){const n=nearest();if(n.dist>7){toast("Nothing close enough.");return}if(n.obj.userData.kind==="car")toggleCar();else if(n.obj===guideNPC)dialogue("AI Concierge","Operator Lewis, passport is mounted. Your first loop is simple: talk to Forge Engineer, clear rogue drones, collect cores, forge Pulse Edge, save state.",[["mission","Accept Mission"],["save","Save"],["close","Close"]]);else if(n.obj===forgeNPC)openForge();else if(n.obj.userData.kind==="enemy")attack();}
+function talkForge(){const n=nearest();if(n.obj===forgeNPC&&n.dist<9)openForge();else if(n.obj===guideNPC&&n.dist<9)interact();else toast("No NPC close enough.")}
+function openForge(){dialogue("Forge Engineer",state.cores>=2? "You have enough Drone Cores. I can upgrade Rust Edge into Pulse Edge.": "Bring me two Drone Cores from the rogue drones. Then I can upgrade your blade.",[["forge","Forge Upgrade"],["close","Leave"]])}
+function forge(){if(state.cores<2){toast("Need two Drone Cores.");return}if(state.forged){toast("Already forged.");return}state.cores-=2;state.weapon="Pulse Edge";state.atk=42;state.forged=true;state.quest="Complete";log("Pulse Edge forged. Quest complete.");toast("Weapon upgraded.");ui();saveState();closeDialogue();}
+function toggleCar(){if(mode==="walking"){if(distance(player,vehicle)>7){toast("Move closer to car.");return}mode="driving";activeCar=vehicle;vehicle.userData.occupied=true;player.visible=false;yaw=vehicle.rotation.y;toast("Entered armoured car.");}else{const off=new THREE.Vector3(4,0,0).applyAxisAngle(new THREE.Vector3(0,1,0),activeCar.rotation.y);player.position.copy(activeCar.position.clone().add(off));player.visible=true;activeCar.userData.speed=0;activeCar.userData.occupied=false;activeCar=null;mode="walking";toast("Exited vehicle.");}}
+function attack(){const pos=mode==="walking"?player:activeCar;let target=null,d=999;for(const e of enemies.filter(x=>x.userData.alive)){let dd=distance(pos,e);if(dd<d){d=dd;target=e}}if(!target||d>12){toast("No enemy in range.");return}let dmg=state.atk+Math.floor(Math.random()*8);target.userData.hp-=dmg;log("Hit rogue drone for "+dmg+".");if(target.userData.hp<=0){target.userData.alive=false;target.visible=false;state.cores++;state.xp+=30;state.gold+=40;log("Rogue drone destroyed. Drone Core collected.");if(state.xp>=state.next){state.xp-=state.next;state.hp=state.maxHp;log("Level sync: passport XP advanced.");}ui();}else{toast("Drone damaged.");}}
+function moveObj(obj,delta,radius){const old=obj.position.clone();obj.position.add(delta);obj.position.x=Math.max(-105,Math.min(105,obj.position.x));obj.position.z=Math.max(-78,Math.min(78,obj.position.z));for(const c of colliders){if(c.userData.name==="ground"||c.userData.name==="road")continue;const hx=c.userData.w/2+radius,hz=c.userData.d/2+radius;if(Math.abs(obj.position.x-c.position.x)<hx&&Math.abs(obj.position.z-c.position.z)<hz){obj.position.copy(old);return false}}return true}
+function updateWalking(dt){let sp=keys.ShiftLeft?11:6.5;let f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),v=new THREE.Vector3();if(keys.KeyW)v.add(f);if(keys.KeyS)v.sub(f);if(keys.KeyD)v.add(r);if(keys.KeyA)v.sub(r);if(v.lengthSq()){v.normalize();moveObj(player,v.multiplyScalar(sp*dt),.75);player.rotation.y=Math.atan2(v.x,v.z);body.position.y=1.25+Math.sin(performance.now()*.012)*.05}}
+function updateDriving(dt){const car=activeCar;if(!car)return;let boost=keys.ShiftLeft?1.7:1;if(keys.KeyW)car.userData.speed+=24*boost*dt;if(keys.KeyS)car.userData.speed-=30*dt;if(!keys.KeyW&&!keys.KeyS)car.userData.speed*=Math.pow(.08,dt);car.userData.speed=Math.max(-18,Math.min(48*boost,car.userData.speed));let steer=(keys.KeyA?1:0)+(keys.KeyD?-1:0);car.rotation.y+=steer*1.9*dt*Math.sign(car.userData.speed||1);const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));if(!moveObj(car,f.multiplyScalar(car.userData.speed*dt),2.6))car.userData.speed*=-.25;yaw=car.rotation.y}
+function updateEnemies(dt){for(const e of enemies.filter(x=>x.userData.alive)){let d=distance(player,e);e.userData.cool-=dt;if(d<32){let dir=player.position.clone().sub(e.position);dir.y=0;if(dir.length()>2.3){dir.normalize();e.position.add(dir.multiplyScalar(2.2*dt));}e.lookAt(player.position.x,e.position.y,player.position.z);if(d<2.8&&e.userData.cool<=0&&mode==="walking"){state.hp=Math.max(0,state.hp-6);e.userData.cool=1.3;log("Rogue drone hit you for 6.");if(state.hp<=0){state.hp=state.maxHp;player.position.set(-6,.1,20);log("Passport restored you at Ops Hub spawn.");}ui();}}}}
+function updateCamera(dt){const obj=mode==="walking"?player:activeCar;let target=obj.position.clone().add(new THREE.Vector3(0,1.4,0));let dist=mode==="walking"?10:17;let height=mode==="walking"?5:7;let off=new THREE.Vector3(-Math.sin(yaw)*dist,height+Math.sin(pitch)*5,-Math.cos(yaw)*dist);camera.position.lerp(target.clone().add(off),1-Math.pow(.001,dt));camera.lookAt(target)}
+function updateHint(){const n=nearest();const h=document.getElementById("hint");if(n.dist<7){h.style.display="block";h.textContent="Press E: "+(n.obj.userData.name||n.obj.userData.kind)}else h.style.display="none";document.getElementById("modeText").textContent=mode==="walking"?"Walking":"Driving";document.getElementById("nearbyText").textContent=n.dist<12?(n.obj.userData.name||n.obj.userData.kind):"None";}
+function animate(){requestAnimationFrame(animate);let dt=Math.min(clock.getDelta(),.05);if(document.getElementById("worldPage").classList.contains("active")){if(mode==="walking")updateWalking(dt);else updateDriving(dt);updateEnemies(dt);updateCamera(dt);updateHint();renderer.render(scene,camera);}}
+function onResize(){const rect=page.getBoundingClientRect();renderer.setSize(rect.width,rect.height);camera.aspect=rect.width/Math.max(1,rect.height);camera.updateProjectionMatrix();}
+window.onResize=onResize;addEventListener("resize",onResize);setTimeout(onResize,50);
+loadState();animate();
 </script>
 </body>
 </html>
